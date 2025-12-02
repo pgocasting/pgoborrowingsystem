@@ -104,7 +104,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     (record) =>
       record.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.borrower.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.id.toLowerCase().includes(searchTerm.toLowerCase())
+      (record.id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   )
 
   const handleReturn = async (id: string, returnedBy: string) => {
@@ -288,8 +288,9 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
               <BorrowingItem
                 key={record.id}
                 {...record}
-                onReturn={(returnedBy: string) => handleReturn(record.id, returnedBy)}
-                onExtend={(newDueDate: string) => handleExtend(record.id, newDueDate)}
+                id={record.id!}
+                onReturn={(returnedBy: string) => handleReturn(record.id!, returnedBy)}
+                onExtend={(newDueDate: string) => handleExtend(record.id!, newDueDate)}
               />
             ))
           ) : (
