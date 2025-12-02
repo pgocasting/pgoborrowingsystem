@@ -43,10 +43,6 @@ export interface NewBorrowingData {
   dueDate: string
 }
 
-const PREDEFINED_ITEMS: string[] = []
-
-const PREDEFINED_LOCATIONS: string[] = []
-
 export default function NewBorrowingModal({
   open,
   onOpenChange,

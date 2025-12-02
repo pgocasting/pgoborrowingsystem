@@ -13,8 +13,6 @@ import {
   addBorrowingRecord,
   getBorrowingRecords,
   updateBorrowingRecord,
-  deleteBorrowingRecord,
-  saveDefaultSettings,
   getDefaultSettings,
   type BorrowingRecord,
 } from '@/services/firebaseService'
@@ -28,7 +26,6 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [isReturnSuccessOpen, setIsReturnSuccessOpen] = useState(false)
   const [returnedItemName, setReturnedItemName] = useState('')
   const [returnedAt, setReturnedAt] = useState('')
@@ -49,7 +46,6 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        setIsLoading(true)
         // Load borrowing records
         const records = await getBorrowingRecords()
         setBorrowingRecords(records)
@@ -68,8 +64,6 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
         }
       } catch (error) {
         console.error('Error loading data from Firebase:', error)
-      } finally {
-        setIsLoading(false)
       }
     }
 
