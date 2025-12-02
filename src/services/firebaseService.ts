@@ -8,6 +8,7 @@ import {
   query,
   where,
   Timestamp,
+  setDoc,
 } from 'firebase/firestore'
 import { db } from '@/config/firebase'
 
@@ -38,14 +39,28 @@ export interface DefaultSettings {
   updatedAt?: Timestamp
 }
 
+// Helper function to get date path (yearMonth and day)
+const getDatePath = (dateString: string) => {
+  const date = new Date(dateString)
+  const year = date.getFullYear().toString()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const yearMonth = `${year}-${month}`
+  return { yearMonth, day }
+}
+
 // Borrowing Records Operations
 export const addBorrowingRecord = async (record: BorrowingRecord) => {
   try {
-    const docRef = await addDoc(collection(db, 'borrowingRecords'), {
+    const { yearMonth, day } = getDatePath(record.borrowDate)
+    
+    // Add the record to borrowingRecords/yearMonth/day using the id field as document ID
+    const docRef = doc(db, 'borrowingRecords', yearMonth, day, record.id!)
+    await setDoc(docRef, {
       ...record,
       createdAt: Timestamp.now(),
     })
-    return docRef.id
+    return record.id!
   } catch (error) {
     console.error('Error adding borrowing record:', error)
     throw error
@@ -54,14 +69,28 @@ export const addBorrowingRecord = async (record: BorrowingRecord) => {
 
 export const getBorrowingRecords = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, 'borrowingRecords'))
     const records: BorrowingRecord[] = []
-    querySnapshot.forEach((doc) => {
-      records.push({
-        docId: doc.id,
-        ...doc.data(),
-      } as BorrowingRecord)
-    })
+    const yearMonthsSnapshot = await getDocs(collection(db, 'borrowingRecords'))
+    
+    for (const yearMonthDoc of yearMonthsSnapshot.docs) {
+      const daysSnapshot = await getDocs(
+        collection(db, 'borrowingRecords', yearMonthDoc.id)
+      )
+      
+      for (const dayDoc of daysSnapshot.docs) {
+        const recordsSnapshot = await getDocs(
+          collection(db, 'borrowingRecords', yearMonthDoc.id, dayDoc.id)
+        )
+        
+        recordsSnapshot.forEach((doc) => {
+          records.push({
+            docId: doc.id,
+            ...doc.data(),
+          } as BorrowingRecord)
+        })
+      }
+    }
+    
     return records
   } catch (error) {
     console.error('Error getting borrowing records:', error)
@@ -69,9 +98,15 @@ export const getBorrowingRecords = async () => {
   }
 }
 
-export const updateBorrowingRecord = async (docId: string, updates: Partial<BorrowingRecord>) => {
+export const updateBorrowingRecord = async (
+  docId: string,
+  updates: Partial<BorrowingRecord>,
+  borrowDate?: string
+) => {
   try {
-    const docRef = doc(db, 'borrowingRecords', docId)
+    const dateStr = borrowDate || new Date().toISOString()
+    const { yearMonth, day } = getDatePath(dateStr)
+    const docRef = doc(db, 'borrowingRecords', yearMonth, day, docId)
     await updateDoc(docRef, updates)
   } catch (error) {
     console.error('Error updating borrowing record:', error)
@@ -79,9 +114,11 @@ export const updateBorrowingRecord = async (docId: string, updates: Partial<Borr
   }
 }
 
-export const deleteBorrowingRecord = async (id: string) => {
+export const deleteBorrowingRecord = async (id: string, borrowDate?: string) => {
   try {
-    await deleteDoc(doc(db, 'borrowingRecords', id))
+    const dateStr = borrowDate || new Date().toISOString()
+    const { yearMonth, day } = getDatePath(dateStr)
+    await deleteDoc(doc(db, 'borrowingRecords', yearMonth, day, id))
   } catch (error) {
     console.error('Error deleting borrowing record:', error)
     throw error
