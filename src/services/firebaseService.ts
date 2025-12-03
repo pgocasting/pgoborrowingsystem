@@ -16,7 +16,8 @@ export interface BorrowingRecord {
   id?: string
   docId?: string
   itemName: string
-  borrower: string
+  firstName: string
+  lastName: string
   department: string
   borrowDate: string
   dueDate: string

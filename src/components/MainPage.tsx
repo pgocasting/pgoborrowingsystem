@@ -97,7 +97,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   const filteredRecords = borrowingRecords.filter(
     (record) =>
       record.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.borrower.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${record.firstName} ${record.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (record.id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   )
 

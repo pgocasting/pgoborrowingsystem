@@ -9,7 +9,8 @@ import ReturnItemModal from './ReturnItemModal'
 interface BorrowingItemProps {
   id: string
   itemName: string
-  borrower: string
+  firstName: string
+  lastName: string
   department: string
   borrowDate: string
   dueDate: string
@@ -24,7 +25,8 @@ interface BorrowingItemProps {
 export default function BorrowingItem({
   id,
   itemName,
-  borrower,
+  firstName,
+  lastName,
   department,
   borrowDate,
   dueDate,
@@ -151,7 +153,7 @@ export default function BorrowingItem({
                     <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div>
                       <span className="text-muted-foreground text-xs">Borrower:</span>
-                      <p className="font-medium">{borrower}</p>
+                      <p className="font-medium">{firstName} {lastName}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{department}</p>
                     </div>
                   </div>
@@ -219,7 +221,7 @@ export default function BorrowingItem({
                         <User className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                         <div>
                           <span className="text-muted-foreground text-xs">Returned by:</span>
-                          <p className="font-medium text-green-600">{returnedBy || borrower}</p>
+                          <p className="font-medium text-green-600">{returnedBy || `${firstName} ${lastName}`}</p>
                         </div>
                       </div>
                     </div>
@@ -257,8 +259,8 @@ export default function BorrowingItem({
                     <p className="text-sm font-bold text-gray-900">{itemName}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium mb-1">Borrower ID</p>
-                    <p className="text-sm font-bold text-gray-900">{borrower}</p>
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Borrower Name</p>
+                    <p className="text-sm font-bold text-gray-900">{firstName} {lastName}</p>
                   </div>
                 </div>
 
@@ -297,7 +299,7 @@ export default function BorrowingItem({
         onOpenChange={setIsReturnModalOpen}
         onConfirm={handleReturnConfirm}
         itemName={itemName}
-        borrowerName={borrower}
+        borrowerName={`${firstName} ${lastName}`}
       />
     </div>
   )

@@ -36,7 +36,8 @@ interface NewBorrowingModalProps {
 
 export interface NewBorrowingData {
   itemName: string
-  borrower: string
+  firstName: string
+  lastName: string
   department: string
   location: string
   borrowDate: string
@@ -51,7 +52,8 @@ export default function NewBorrowingModal({
 }: NewBorrowingModalProps) {
   const [formData, setFormData] = useState<NewBorrowingData>({
     itemName: '',
-    borrower: '',
+    firstName: '',
+    lastName: '',
     department: '',
     location: '',
     borrowDate: new Date().toISOString().split('T')[0],
@@ -70,8 +72,11 @@ export default function NewBorrowingModal({
     if (!formData.itemName.trim()) {
       newErrors.itemName = 'Item name is required'
     }
-    if (!formData.borrower.trim()) {
-      newErrors.borrower = 'Borrower name is required'
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required'
+    }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required'
     }
     if (!formData.department.trim()) {
       newErrors.department = 'Department is required'
@@ -100,7 +105,8 @@ export default function NewBorrowingModal({
       onSubmit(formData)
       setFormData({
         itemName: '',
-        borrower: '',
+        firstName: '',
+        lastName: '',
         department: '',
         location: '',
         borrowDate: new Date().toISOString().split('T')[0],
@@ -159,20 +165,36 @@ export default function NewBorrowingModal({
             )}
           </div>
 
-          {/* Borrower Name */}
-          <div className="space-y-2">
-            <Label htmlFor="borrower">Borrower Name *</Label>
-            <Input
-              id="borrower"
-              name="borrower"
-              placeholder="e.g., John Doe"
-              value={formData.borrower}
-              onChange={handleInputChange}
-              className={errors.borrower ? 'border-red-500' : ''}
-            />
-            {errors.borrower && (
-              <p className="text-sm text-red-500">{errors.borrower}</p>
-            )}
+          {/* Borrower Name - First and Last */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name *</Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                placeholder="e.g., John"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                className={errors.firstName ? 'border-red-500' : ''}
+              />
+              {errors.firstName && (
+                <p className="text-sm text-red-500">{errors.firstName}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name *</Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                placeholder="e.g., Doe"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                className={errors.lastName ? 'border-red-500' : ''}
+              />
+              {errors.lastName && (
+                <p className="text-sm text-red-500">{errors.lastName}</p>
+              )}
+            </div>
           </div>
 
           {/* Department */}
