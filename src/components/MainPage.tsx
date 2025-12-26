@@ -17,7 +17,6 @@ import {
   getDefaultSettings,
   type BorrowingRecord,
 } from '@/services/firebaseService'
-import { useIsMobile } from '@/hooks/use-mobile'
 import {
   Popover,
   PopoverContent,
@@ -57,8 +56,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   const [editingRecord, setEditingRecord] = useState<BorrowingRecord | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const isMobile = useIsMobile()
-
+  
   // Load data from Firebase on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -174,7 +172,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             <div className="h-2 w-full overflow-hidden rounded-full bg-white/25">
               <div
                 className="h-full rounded-full bg-white transition-[width] duration-200 ease-out"
-                style={{ width: `${loadingProgress}%` }}
+                data-progress={loadingProgress}
               />
             </div>
           </div>
