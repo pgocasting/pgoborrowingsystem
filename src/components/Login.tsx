@@ -50,9 +50,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
         {/* Header */}
         <div className="flex justify-center mb-8">
-          <div className="bg-blue-500 p-3 rounded-full">
-            <LogIn className="w-6 h-6 text-white" />
-          </div>
+          <img
+            src="/images/bataan-logo.png"
+            alt="Bataan Logo"
+            className="h-14 w-14 object-contain"
+          />
         </div>
 
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">

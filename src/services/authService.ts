@@ -1,7 +1,10 @@
 import {
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
 } from 'firebase/auth'
 import { auth, db } from '@/config/firebase'
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
@@ -114,4 +117,20 @@ export const checkUsernameExists = async (username: string): Promise<boolean> =>
     console.error('Error checking username:', error)
     return false
   }
+}
+
+export const changeCurrentUserPassword = async (
+  currentPassword: string,
+  newPassword: string
+): Promise<void> => {
+  const user = auth.currentUser
+  const email = user?.email
+
+  if (!user || !email) {
+    throw new Error('No authenticated user')
+  }
+
+  const credential = EmailAuthProvider.credential(email, currentPassword)
+  await reauthenticateWithCredential(user, credential)
+  await updatePassword(user, newPassword)
 }

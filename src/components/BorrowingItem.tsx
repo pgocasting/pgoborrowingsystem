@@ -41,6 +41,11 @@ export default function BorrowingItem({
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false)
   const [isFlipped, setIsFlipped] = useState(false)
 
+  const locationList = location
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean)
+
   const handleExtendConfirm = (newDueDate: string) => {
     // Call the parent's onExtend with the new date
     if (onExtend) {
@@ -147,7 +152,7 @@ export default function BorrowingItem({
             <CardContent className="flex-1 pt-4">
               <div className={`${status === 'returned' && returnedAt ? 'grid grid-cols-2 gap-4' : ''}`}>
                 {/* Left Column */}
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                   {/* Borrower Info */}
                   <div className="flex items-start gap-3 text-sm">
                     <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -158,21 +163,31 @@ export default function BorrowingItem({
                     </div>
                   </div>
 
-                  {/* Location */}
-                  <div className="flex items-start gap-3 text-sm">
-                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                    <div>
-                      <span className="text-muted-foreground text-xs">Location:</span>
-                      <p className="font-medium">{location}</p>
-                    </div>
-                  </div>
-
                   {/* Borrow Date */}
                   <div className="flex items-start gap-3 text-sm">
                     <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div>
                       <span className="text-muted-foreground text-xs">Borrowed:</span>
                       <p className="font-medium">{new Date(borrowDate).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="flex items-start gap-3 text-sm">
+                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <span className="text-muted-foreground text-xs">Location:</span>
+                      {locationList.length > 1 ? (
+                        <div className="mt-1 space-y-1">
+                          {locationList.map((loc) => (
+                            <p key={loc} className="font-medium leading-tight">
+                              {loc}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="font-medium">{location}</p>
+                      )}
                     </div>
                   </div>
 

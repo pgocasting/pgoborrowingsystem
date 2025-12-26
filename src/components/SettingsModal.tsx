@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { saveDefaultSettings } from '@/services/firebaseService'
+import { changeCurrentUserPassword } from '@/services/authService'
 import {
   Dialog,
   DialogContent,
@@ -45,8 +46,14 @@ export default function SettingsModal({
   const [newLocation, setNewLocation] = useState('')
   const [newDepartment, setNewDepartment] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-  const [activeTab, setActiveTab] = useState<'items' | 'locations' | 'departments' | 'import'>('items')
+  const [activeTab, setActiveTab] = useState<'items' | 'locations' | 'departments' | 'import' | 'password'>('items')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordMessage, setPasswordMessage] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   // Sync settings when currentSettings prop changes (from Firebase reload)
   useEffect(() => {
@@ -176,6 +183,41 @@ department,Sample Department 2`
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)
+  }
+
+  const handleChangePassword = async () => {
+    try {
+      setPasswordMessage('')
+
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        setPasswordMessage('Please fill in all password fields')
+        return
+      }
+
+      if (newPassword !== confirmPassword) {
+        setPasswordMessage('New password and confirmation do not match')
+        return
+      }
+
+      if (newPassword.length < 6) {
+        setPasswordMessage('New password must be at least 6 characters')
+        return
+      }
+
+      setIsChangingPassword(true)
+      await changeCurrentUserPassword(currentPassword, newPassword)
+      setPasswordMessage('Password updated successfully!')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setTimeout(() => setPasswordMessage(''), 2000)
+    } catch (error) {
+      console.error('Error changing password:', error)
+      setPasswordMessage('Error changing password. Please check your current password and try again.')
+      setTimeout(() => setPasswordMessage(''), 3000)
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
   const renderCategoryContent = (category: 'items' | 'locations' | 'departments') => {
@@ -326,6 +368,16 @@ department,Sample Department 2`
             Departments
           </button>
           <button
+            onClick={() => setActiveTab('password')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'password'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Change Password
+          </button>
+          <button
             onClick={() => setActiveTab('import')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ml-auto ${
               activeTab === 'import'
@@ -344,6 +396,81 @@ department,Sample Department 2`
           {activeTab === 'locations' && renderCategoryContent('locations')}
 
           {activeTab === 'departments' && renderCategoryContent('departments')}
+
+          {activeTab === 'password' && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Change Password</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  For security, enter your current password to set a new one.
+                </p>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Current Password
+                    </label>
+                    <Input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Enter current password"
+                      disabled={isChangingPassword}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      New Password
+                    </label>
+                    <Input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      disabled={isChangingPassword}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm New Password
+                    </label>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      disabled={isChangingPassword}
+                    />
+                  </div>
+
+                  {passwordMessage && (
+                    <p
+                      className={`text-sm font-medium ${
+                        passwordMessage === 'Password updated successfully!'
+                          ? 'text-green-600'
+                          : 'text-red-600'
+                      }`}
+                    >
+                      {passwordMessage}
+                    </p>
+                  )}
+
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      onClick={handleChangePassword}
+                      disabled={isChangingPassword}
+                      className="gap-2"
+                    >
+                      {isChangingPassword ? 'Updating...' : 'Update Password'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeTab === 'import' && (
             <div className="space-y-4">

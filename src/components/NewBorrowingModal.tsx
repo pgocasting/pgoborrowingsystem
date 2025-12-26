@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -60,6 +61,8 @@ export default function NewBorrowingModal({
     dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   })
 
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([])
+
   const [errors, setErrors] = useState<Partial<NewBorrowingData>>({})
 
   const allItems = defaultSettings?.customItems || []
@@ -81,7 +84,7 @@ export default function NewBorrowingModal({
     if (!formData.department.trim()) {
       newErrors.department = 'Department is required'
     }
-    if (!formData.location.trim()) {
+    if (selectedLocations.length === 0) {
       newErrors.location = 'Location is required'
     }
     if (!formData.borrowDate) {
@@ -102,7 +105,8 @@ export default function NewBorrowingModal({
     e.preventDefault()
 
     if (validateForm()) {
-      onSubmit(formData)
+      const location = selectedLocations.join(', ')
+      onSubmit({ ...formData, location })
       setFormData({
         itemName: '',
         firstName: '',
@@ -112,6 +116,7 @@ export default function NewBorrowingModal({
         borrowDate: new Date().toISOString().split('T')[0],
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       })
+      setSelectedLocations([])
       setErrors({})
       onOpenChange(false)
     }
@@ -225,23 +230,60 @@ export default function NewBorrowingModal({
           {/* Location */}
           <div className="space-y-2">
             <Label htmlFor="location">Location *</Label>
-            <Select value={formData.location} onValueChange={(value: string) => {
-              setFormData((prev) => ({ ...prev, location: value }))
-              if (errors.location) {
-                setErrors((prev) => ({ ...prev, location: undefined }))
-              }
-            }}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a location" />
-              </SelectTrigger>
-              <SelectContent>
-                {allLocations.map((loc) => (
-                  <SelectItem key={loc} value={loc}>
-                    {loc}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="rounded-md border border-input bg-transparent">
+              {selectedLocations.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-3 border-b border-input">
+                  {selectedLocations.map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => {
+                        setSelectedLocations((prev) => {
+                          const next = prev.filter((l) => l !== loc)
+                          setFormData((fd) => ({ ...fd, location: next.join(', ') }))
+                          return next
+                        })
+                      }}
+                      className="text-xs px-2 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+                      title="Remove"
+                    >
+                      {loc} <span className="ml-1">×</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="max-h-44 overflow-y-auto p-3 space-y-2">
+                {allLocations.length > 0 ? (
+                  allLocations.map((loc) => {
+                    const checked = selectedLocations.includes(loc)
+                    return (
+                      <label key={loc} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(nextChecked) => {
+                            setSelectedLocations((prev) => {
+                              const isChecked = nextChecked === true
+                              const next = isChecked
+                                ? [...prev, loc]
+                                : prev.filter((l) => l !== loc)
+                              setFormData((fd) => ({ ...fd, location: next.join(', ') }))
+                              if (errors.location) {
+                                setErrors((prevErrors) => ({ ...prevErrors, location: undefined }))
+                              }
+                              return next
+                            })
+                          }}
+                        />
+                        <span className="text-gray-800">{loc}</span>
+                      </label>
+                    )
+                  })
+                ) : (
+                  <p className="text-sm text-gray-500">No locations available. Add locations in Settings.</p>
+                )}
+              </div>
+            </div>
             {errors.location && (
               <p className="text-sm text-red-500">{errors.location}</p>
             )}
