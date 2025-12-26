@@ -6,6 +6,7 @@ import { LogOut, Plus, Search, Settings } from 'lucide-react'
 import BorrowingItem from './BorrowingItem'
 import NewBorrowingModal from './NewBorrowingModal'
 import type { NewBorrowingData } from './NewBorrowingModal'
+import EditBorrowingModal, { type EditBorrowingInitialData, type EditBorrowingUpdates } from './EditBorrowingModal'
 import SettingsModal from './SettingsModal'
 import type { DefaultSettings } from './SettingsModal'
 import ReturnSuccessModal from './ReturnSuccessModal'
@@ -25,11 +26,17 @@ interface MainPageProps {
 export default function MainPage({ username, onLogout }: MainPageProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isReturnSuccessOpen, setIsReturnSuccessOpen] = useState(false)
   const [returnedItemName, setReturnedItemName] = useState('')
   const [returnedAt, setReturnedAt] = useState('')
   const [returnedByName, setReturnedByName] = useState('')
+  const [loadError, setLoadError] = useState<string>('')
+  const [submitError, setSubmitError] = useState<string>('')
+  const [isDataLoading, setIsDataLoading] = useState(true)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [canRenderPage, setCanRenderPage] = useState(false)
   
   const [defaultSettings, setDefaultSettings] = useState<DefaultSettings>({
     defaultItemName: '',
@@ -41,16 +48,19 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   })
   
   const [borrowingRecords, setBorrowingRecords] = useState<BorrowingRecord[]>([])
+  const [editingRecord, setEditingRecord] = useState<BorrowingRecord | null>(null)
 
   // Load data from Firebase on component mount
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load borrowing records
+        setLoadError('')
+        setIsDataLoading(true)
+        setCanRenderPage(false)
+        setLoadingProgress(0)
         const records = await getBorrowingRecords()
         setBorrowingRecords(records)
 
-        // Load default settings
         const settings = await getDefaultSettings()
         if (settings) {
           setDefaultSettings({
@@ -64,11 +74,50 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
         }
       } catch (error) {
         console.error('Error loading data from Firebase:', error)
+        const err = error as { code?: string; message?: string }
+        setLoadError(
+          `Failed to load data from Firestore. ${err?.code ? `(${err.code}) ` : ''}${err?.message || ''}`
+        )
+      } finally {
+        setIsDataLoading(false)
+        setLoadingProgress(100)
       }
     }
 
     loadData()
   }, [])
+
+  const handleEditSave = async (id: string, updates: EditBorrowingUpdates) => {
+    try {
+      const record = borrowingRecords.find((r) => r.id === id)
+      if (!record?.docId) return
+
+      await updateBorrowingRecord(record.docId, updates, record.borrowDate)
+      setBorrowingRecords(
+        borrowingRecords.map((r) => (r.id === id ? { ...r, ...updates } : r))
+      )
+    } catch (error) {
+      console.error('Error updating record:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (!isDataLoading) return
+    const interval = setInterval(() => {
+      setLoadingProgress((p) => {
+        if (p >= 95) return 95
+        return Math.min(95, p + 5)
+      })
+    }, 200)
+    return () => clearInterval(interval)
+  }, [isDataLoading])
+
+  useEffect(() => {
+    if (!isDataLoading && loadingProgress >= 100) {
+      const t = setTimeout(() => setCanRenderPage(true), 150)
+      return () => clearTimeout(t)
+    }
+  }, [isDataLoading, loadingProgress])
 
   // Reload settings when settings modal opens
   useEffect(() => {
@@ -94,6 +143,37 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     }
   }, [isSettingsOpen])
 
+  if (!canRenderPage) {
+    return (
+      <div className="min-h-screen loading-rgb-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-6 h-28 w-28">
+            <svg
+              viewBox="0 0 841.9 595.3"
+              className="h-28 w-28 animate-spin"
+              aria-label="Loading"
+            >
+              <g fill="none" stroke="white" strokeWidth="28">
+                <ellipse cx="420.9" cy="296.5" rx="165" ry="64" />
+                <ellipse cx="420.9" cy="296.5" rx="165" ry="64" transform="rotate(60 420.9 296.5)" />
+                <ellipse cx="420.9" cy="296.5" rx="165" ry="64" transform="rotate(120 420.9 296.5)" />
+              </g>
+              <circle cx="420.9" cy="296.5" r="44" fill="white" />
+            </svg>
+          </div>
+          <div className="mx-auto w-56 max-w-[70vw]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-white/25">
+              <div
+                className="h-full rounded-full bg-white transition-[width] duration-200 ease-out"
+                style={{ width: `${loadingProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const filteredRecords = borrowingRecords.filter(
     (record) =>
       record.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,11 +186,11 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
       const record = borrowingRecords.find((r) => r.id === id)
       if (record?.docId) {
         const now = new Date().toISOString()
-        await updateBorrowingRecord(record.docId, { 
+        await updateBorrowingRecord(record.docId, {
           status: 'returned', 
           returnedAt: now,
           returnedBy: returnedBy
-        })
+        }, record.borrowDate)
         setBorrowingRecords(
           borrowingRecords.map((r) =>
             r.id === id ? { ...r, status: 'returned', returnedAt: now, returnedBy: returnedBy } : r
@@ -131,7 +211,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     try {
       const record = borrowingRecords.find((r) => r.id === id)
       if (record?.docId) {
-        await updateBorrowingRecord(record.docId, { dueDate: newDueDate })
+        await updateBorrowingRecord(record.docId, { dueDate: newDueDate }, record.borrowDate)
         setBorrowingRecords(
           borrowingRecords.map((r) => {
             if (r.id === id) {
@@ -148,8 +228,17 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
 
   const handleNewBorrowing = async (data: NewBorrowingData) => {
     try {
+      setSubmitError('')
+
       // Generate formatted ID: BRW001, BRW002, etc.
-      const nextNumber = borrowingRecords.length + 1
+      // IMPORTANT: Do not use borrowingRecords.length. After refresh (or partial fetch),
+      // it can produce duplicate IDs and overwrite existing Firestore documents.
+      const maxExisting = borrowingRecords.reduce((max, r) => {
+        const match = (r.id || '').match(/^BRW(\d+)$/)
+        const n = match ? Number(match[1]) : 0
+        return Number.isFinite(n) ? Math.max(max, n) : max
+      }, 0)
+      const nextNumber = maxExisting + 1
       const formattedId = `BRW${String(nextNumber).padStart(3, '0')}`
       
       const newRecord: BorrowingRecord = {
@@ -162,6 +251,10 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
       setBorrowingRecords([recordWithIds, ...borrowingRecords])
     } catch (error) {
       console.error('Error adding borrowing record:', error)
+      const err = error as { code?: string; message?: string }
+      setSubmitError(
+        `Failed to save new borrowing to Firestore. ${err?.code ? `(${err.code}) ` : ''}${err?.message || ''}`
+      )
     }
   }
 
@@ -210,6 +303,16 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+        {loadError && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {loadError}
+          </div>
+        )}
+        {submitError && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {submitError}
+          </div>
+        )}
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
@@ -265,6 +368,29 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
           defaultSettings={defaultSettings}
         />
 
+        <EditBorrowingModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          initialData={
+            editingRecord
+              ? ({
+                  itemName: editingRecord.itemName,
+                  firstName: editingRecord.firstName,
+                  lastName: editingRecord.lastName,
+                  department: editingRecord.department,
+                  location: editingRecord.location,
+                  borrowDate: editingRecord.borrowDate,
+                  dueDate: editingRecord.dueDate,
+                } satisfies EditBorrowingInitialData)
+              : null
+          }
+          defaultSettings={defaultSettings}
+          onConfirm={(updates) => {
+            if (!editingRecord?.id) return
+            handleEditSave(editingRecord.id, updates)
+          }}
+        />
+
         {/* Settings Modal */}
         <SettingsModal
           open={isSettingsOpen}
@@ -292,6 +418,10 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
                 id={record.id!}
                 onReturn={(returnedBy: string) => handleReturn(record.id!, returnedBy)}
                 onExtend={(newDueDate: string) => handleExtend(record.id!, newDueDate)}
+                onEdit={() => {
+                  setEditingRecord(record)
+                  setIsEditModalOpen(true)
+                }}
               />
             ))
           ) : (

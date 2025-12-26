@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { LogIn } from 'lucide-react'
-import { signInUser, getUserByUsername } from '@/services/authService'
+import { signInUser, getUserByUsername, type UserProfile } from '@/services/authService'
 
 interface LoginProps {
-  onLoginSuccess: (username: string) => void
+  onLoginSuccess: (profile: UserProfile) => void
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
@@ -33,8 +33,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       }
 
       // Sign in with email and password
-      await signInUser(user.email, password)
-      onLoginSuccess(username)
+      const profile = await signInUser(user.email, password)
+      onLoginSuccess(profile)
       setUsername('')
       setPassword('')
     } catch (err) {

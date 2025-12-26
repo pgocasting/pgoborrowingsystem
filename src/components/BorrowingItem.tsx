@@ -20,6 +20,7 @@ interface BorrowingItemProps {
   returnedBy?: string
   onReturn?: (returnedBy: string) => void
   onExtend?: (newDueDate: string) => void
+  onEdit?: () => void
 }
 
 export default function BorrowingItem({
@@ -36,10 +37,13 @@ export default function BorrowingItem({
   returnedBy,
   onReturn,
   onExtend,
+  onEdit,
 }: BorrowingItemProps) {
   const [isExtendModalOpen, setIsExtendModalOpen] = useState(false)
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false)
   const [isFlipped, setIsFlipped] = useState(false)
+
+  const isReturnedView = status === 'returned' && !!returnedAt
 
   const locationList = location
     .split(',')
@@ -86,7 +90,7 @@ export default function BorrowingItem({
           setIsFlipped(!isFlipped)
         }
       }}
-      className={`h-96 ${status === 'returned' ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`h-[26rem] ${status === 'returned' ? 'cursor-pointer' : 'cursor-default'}`}
       style={{
         perspective: '1000px',
       }}
@@ -115,6 +119,19 @@ export default function BorrowingItem({
                 <div className="flex items-center gap-2 shrink-0">
                   {status !== 'returned' && (
                     <>
+                      {onEdit && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation()
+                            onEdit()
+                          }}
+                          className="text-xs"
+                        >
+                          Edit
+                        </Button>
+                      )}
                       {onExtend && (
                         <Button
                           variant="outline"
@@ -149,9 +166,99 @@ export default function BorrowingItem({
               </div>
             </CardHeader>
 
-            <CardContent className="flex-1 pt-4">
-              <div className={`${status === 'returned' && returnedAt ? 'grid grid-cols-2 gap-4' : ''}`}>
-                {/* Left Column */}
+            <CardContent className="flex-1 pt-4 pb-8">
+              {isReturnedView ? (
+                <div className="grid grid-cols-[1.35fr_1fr] gap-6">
+                  {/* Left Column (wider) */}
+                  <div className="space-y-4">
+                    {/* Borrower Info */}
+                    <div className="flex items-start gap-3 text-sm">
+                      <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <span className="text-muted-foreground text-xs">Borrower:</span>
+                        <p className="font-medium">{firstName} {lastName}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{department}</p>
+                      </div>
+                    </div>
+
+                    {/* Location */}
+                    <div className="flex items-start gap-3 text-sm">
+                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <span className="text-muted-foreground text-xs">Location:</span>
+                        {locationList.length > 1 ? (
+                          <div className="mt-1 space-y-1">
+                            {locationList.map((loc) => (
+                              <p key={loc} className="font-medium leading-tight">
+                                {loc}
+                              </p>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="font-medium">{location}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-2">
+                    {/* Borrowed */}
+                    <div className="flex items-start gap-3 text-sm">
+                      <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <span className="text-muted-foreground text-xs">Borrowed:</span>
+                        <p className="font-medium">{new Date(borrowDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+
+                    {/* Due */}
+                    <div className="flex items-start gap-3 text-sm">
+                      <Clock className={`w-4 h-4 ${isOverdue ? 'text-red-500' : 'text-muted-foreground'} mt-0.5 shrink-0`} />
+                      <div>
+                        <span className="text-muted-foreground text-xs">Due:</span>
+                        <p className={`font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+                          {new Date(dueDate).toLocaleDateString()}
+                          {isOverdue && <span className="ml-2 text-xs text-red-600">(Overdue)</span>}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Returned Date and Time */}
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-start gap-3 text-sm">
+                        <Calendar className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-muted-foreground text-xs">Returned:</span>
+                          <p className="font-medium text-green-600">
+                            {new Date(returnedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 text-sm">
+                        <Clock className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-muted-foreground text-xs">Time:</span>
+                          <p className="font-medium text-green-600">
+                            {new Date(returnedAt).toLocaleTimeString('en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 text-sm">
+                        <User className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-muted-foreground text-xs">Returned by:</span>
+                          <p className="font-medium text-green-600">{returnedBy || `${firstName} ${lastName}`}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                   {/* Borrower Info */}
                   <div className="flex items-start gap-3 text-sm">
@@ -203,46 +310,7 @@ export default function BorrowingItem({
                     </div>
                   </div>
                 </div>
-
-                {/* Right Column */}
-                <div className="space-y-3">
-
-                  {/* Returned Date and Time */}
-                  {status === 'returned' && returnedAt && (
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-3 text-sm">
-                        <Calendar className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                        <div>
-                          <span className="text-muted-foreground text-xs">Returned:</span>
-                          <p className="font-medium text-green-600">
-                            {new Date(returnedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 text-sm">
-                        <Clock className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                        <div>
-                          <span className="text-muted-foreground text-xs">Time:</span>
-                          <p className="font-medium text-green-600">
-                            {new Date(returnedAt).toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 text-sm">
-                        <User className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                        <div>
-                          <span className="text-muted-foreground text-xs">Returned by:</span>
-                          <p className="font-medium text-green-600">{returnedBy || `${firstName} ${lastName}`}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              )}
             </CardContent>
 
           </Card>

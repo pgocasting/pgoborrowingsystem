@@ -118,3 +118,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes indeterminate-bar {
+  0% {
+    transform: translateX(-60%) scaleX(0.35);
+  }
+  50% {
+    transform: translateX(60%) scaleX(0.5);
+  }
+  100% {
+    transform: translateX(160%) scaleX(0.35);
+  }
+}
+
+.loading-bar-indeterminate {
+  transform-origin: left center;
+  animation: indeterminate-bar 1.2s ease-in-out infinite;
+}
+
+@keyframes rgb-gradient-move {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(180deg);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(360deg);
+  }
+}
+
+.loading-rgb-bg {
+  background: linear-gradient(120deg, #ff004c, #00d4ff, #7c3aed, #00ff85, #ffb800);
+  background-size: 300% 300%;
+  animation: rgb-gradient-move 4s ease-in-out infinite;
+}

@@ -54,7 +54,16 @@ const getDatePath = (dateString: string) => {
 export const addBorrowingRecord = async (record: BorrowingRecord) => {
   try {
     const { yearMonth, day } = getDatePath(record.borrowDate)
-    
+
+    // Ensure the yearMonth parent document exists so it can be discovered by getBorrowingRecords.
+    // Firestore allows writing to subcollections under a missing parent doc, but that parent doc
+    // won't show up in collection listings unless it exists.
+    await setDoc(
+      doc(db, 'borrowingRecords', yearMonth),
+      { updatedAt: Timestamp.now() },
+      { merge: true }
+    )
+
     // Add the record to borrowingRecords/yearMonth/day using the id field as document ID
     const docRef = doc(db, 'borrowingRecords', yearMonth, day, record.id!)
     await setDoc(docRef, {
@@ -71,30 +80,85 @@ export const addBorrowingRecord = async (record: BorrowingRecord) => {
 export const getBorrowingRecords = async () => {
   try {
     const records: BorrowingRecord[] = []
+    const seenDocIds = new Set<string>()
     const yearMonthsSnapshot = await getDocs(collection(db, 'borrowingRecords'))
-    
-    for (const yearMonthDoc of yearMonthsSnapshot.docs) {
-      const daysSnapshot = await getDocs(
-        collection(db, 'borrowingRecords', yearMonthDoc.id)
-      )
-      
-      for (const dayDoc of daysSnapshot.docs) {
+
+    console.debug('[getBorrowingRecords] yearMonth docs:', yearMonthsSnapshot.size)
+
+    const yearMonthsToScan: string[] = yearMonthsSnapshot.docs.map((d) => d.id)
+
+    // Fallback: if no yearMonth docs are returned (common when parent docs were never created),
+    // scan recent months based on current date.
+    if (yearMonthsToScan.length === 0) {
+      const now = new Date()
+      for (let i = 0; i < 18; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        yearMonthsToScan.push(ym)
+      }
+      console.debug('[getBorrowingRecords] scanning recent yearMonths fallback:', yearMonthsToScan.length)
+    }
+
+    for (const yearMonth of yearMonthsToScan) {
+      // NOTE: In this app's schema, day is a SUBCOLLECTION under borrowingRecords/{YYYY-MM}.
+      // The client SDK cannot list subcollections, so we scan possible days (01..31).
+      for (let d = 1; d <= 31; d++) {
+        const day = String(d).padStart(2, '0')
         const recordsSnapshot = await getDocs(
-          collection(db, 'borrowingRecords', yearMonthDoc.id, dayDoc.id)
+          collection(db, 'borrowingRecords', yearMonth, day)
         )
-        
-        recordsSnapshot.forEach((doc) => {
+
+        if (recordsSnapshot.size > 0) {
+          console.debug(
+            '[getBorrowingRecords] yearMonth/day:',
+            `${yearMonth}/${day}`,
+            'records:',
+            recordsSnapshot.size
+          )
+        }
+
+        recordsSnapshot.forEach((docSnap) => {
+          if (seenDocIds.has(docSnap.id)) return
+          seenDocIds.add(docSnap.id)
           records.push({
-            docId: doc.id,
-            ...doc.data(),
+            docId: docSnap.id,
+            ...docSnap.data(),
           } as BorrowingRecord)
         })
       }
     }
-    
+
+    if (records.length > 0) {
+      console.debug('[getBorrowingRecords] returning nested records:', records.length)
+      return records
+    }
+
+    console.debug('[getBorrowingRecords] no nested records found, trying flat collection fallback')
+    const flatSnapshot = await getDocs(collection(db, 'borrowingRecords'))
+    console.debug('[getBorrowingRecords] flat borrowingRecords docs:', flatSnapshot.size)
+    flatSnapshot.forEach((docSnap) => {
+      const data = docSnap.data() as Record<string, unknown>
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'itemName' in data &&
+        'firstName' in data &&
+        'lastName' in data
+      ) {
+        if (seenDocIds.has(docSnap.id)) return
+        seenDocIds.add(docSnap.id)
+        records.push({
+          docId: docSnap.id,
+          ...data,
+        } as BorrowingRecord)
+      }
+    })
+
+    console.debug('[getBorrowingRecords] returning flat records:', records.length)
     return records
   } catch (error) {
-    console.error('Error getting borrowing records:', error)
+    const err = error as { code?: string; message?: string }
+    console.error('Error getting borrowing records:', err?.code || '', err?.message || '', error)
     throw error
   }
 }
@@ -110,8 +174,13 @@ export const updateBorrowingRecord = async (
     const docRef = doc(db, 'borrowingRecords', yearMonth, day, docId)
     await updateDoc(docRef, updates)
   } catch (error) {
-    console.error('Error updating borrowing record:', error)
-    throw error
+    try {
+      const flatRef = doc(db, 'borrowingRecords', docId)
+      await updateDoc(flatRef, updates)
+    } catch (fallbackError) {
+      console.error('Error updating borrowing record:', error)
+      throw fallbackError
+    }
   }
 }
 
@@ -121,8 +190,12 @@ export const deleteBorrowingRecord = async (id: string, borrowDate?: string) => 
     const { yearMonth, day } = getDatePath(dateStr)
     await deleteDoc(doc(db, 'borrowingRecords', yearMonth, day, id))
   } catch (error) {
-    console.error('Error deleting borrowing record:', error)
-    throw error
+    try {
+      await deleteDoc(doc(db, 'borrowingRecords', id))
+    } catch (fallbackError) {
+      console.error('Error deleting borrowing record:', error)
+      throw fallbackError
+    }
   }
 }
 
