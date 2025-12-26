@@ -10,6 +10,7 @@ import ReturnItemModal from './ReturnItemModal'
 interface BorrowingItemProps {
   id: string
   itemName: string
+  itemImageUrl?: string
   firstName: string
   lastName: string
   department: string
@@ -27,6 +28,7 @@ interface BorrowingItemProps {
 export default function BorrowingItem({
   id,
   itemName,
+  itemImageUrl,
   firstName,
   lastName,
   department,
@@ -89,12 +91,24 @@ export default function BorrowingItem({
   const frontCard = (
     <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
       <CardHeader className="pb-4 border-b">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <CardTitle className="text-lg font-bold">{itemName}</CardTitle>
-            <CardDescription className="text-xs mt-1">ID: {id}</CardDescription>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3 min-w-0">
+            {itemImageUrl ? (
+              <img
+                src={itemImageUrl}
+                alt={itemName}
+                className="h-12 w-12 rounded object-cover border shrink-0"
+                onError={(e) => {
+                  ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                }}
+              />
+            ) : null}
+            <div className="min-w-0">
+              <CardTitle className="text-lg font-bold truncate">{itemName}</CardTitle>
+              <CardDescription className="text-xs mt-1">ID: {id}</CardDescription>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end sm:shrink-0">
             {status !== 'returned' && (
               <>
                 {onEdit && (
@@ -292,8 +306,22 @@ export default function BorrowingItem({
   const backCard = (
     <Card className="hover:shadow-lg transition-shadow h-full flex flex-col bg-white">
       <CardHeader className="pb-3 border-b">
-        <CardTitle className="text-lg font-bold">Item Details</CardTitle>
-        <CardDescription className="text-xs mt-0.5">Tap to flip back</CardDescription>
+        <div className="flex items-start gap-3">
+          {itemImageUrl ? (
+            <img
+              src={itemImageUrl}
+              alt={itemName}
+              className="h-10 w-10 rounded object-cover border shrink-0"
+              onError={(e) => {
+                ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+              }}
+            />
+          ) : null}
+          <div>
+            <CardTitle className="text-lg font-bold">Item Details</CardTitle>
+            <CardDescription className="text-xs mt-0.5">Tap to flip back</CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 pt-4">
         <div className="grid grid-cols-2 gap-4">
@@ -395,8 +423,22 @@ export default function BorrowingItem({
             >
               <Card className="h-full flex flex-col bg-white hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3 border-b">
-                  <CardTitle className="text-lg font-bold">Item Details</CardTitle>
-                  <CardDescription className="text-xs mt-0.5">Click to flip back</CardDescription>
+                  <div className="flex items-start gap-3">
+                    {itemImageUrl ? (
+                      <img
+                        src={itemImageUrl}
+                        alt={itemName}
+                        className="h-10 w-10 rounded object-cover border shrink-0"
+                        onError={(e) => {
+                          ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                    ) : null}
+                    <div>
+                      <CardTitle className="text-lg font-bold">Item Details</CardTitle>
+                      <CardDescription className="text-xs mt-0.5">Click to flip back</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="flex-1 pt-4">
                   <div className="grid grid-cols-2 gap-4">

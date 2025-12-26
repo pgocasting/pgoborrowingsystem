@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LogOut, Plus, Search, Settings } from 'lucide-react'
+import { LogOut, Plus, Search, Settings, Menu } from 'lucide-react'
 import BorrowingItem from './BorrowingItem'
 import NewBorrowingModal from './NewBorrowingModal'
 import type { NewBorrowingData } from './NewBorrowingModal'
@@ -17,6 +17,12 @@ import {
   getDefaultSettings,
   type BorrowingRecord,
 } from '@/services/firebaseService'
+import { useIsMobile } from '@/hooks/use-mobile'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 interface MainPageProps {
   username: string
@@ -49,6 +55,9 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   
   const [borrowingRecords, setBorrowingRecords] = useState<BorrowingRecord[]>([])
   const [editingRecord, setEditingRecord] = useState<BorrowingRecord | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const isMobile = useIsMobile()
 
   // Load data from Firebase on component mount
   useEffect(() => {
@@ -266,37 +275,74 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     <div className="h-screen w-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shrink-0">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <img
                 src="/images/bataan-logo.png"
                 alt="Bataan Logo"
-                className="h-10 w-10 object-contain shrink-0"
+                className="h-9 w-9 sm:h-10 sm:w-10 object-contain shrink-0"
               />
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">PGO Borrowing System</h1>
-                <p className="text-sm text-gray-600 mt-1 truncate">Welcome, {username}</p>
+                <h1 className="text-base sm:text-2xl font-bold text-gray-900 leading-tight truncate">PGO Borrowing System</h1>
+                <p className="text-sm text-gray-600 mt-0.5 truncate">Welcome, {username}</p>
               </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                size="icon"
-                className="gap-2"
-                onClick={() => setIsSettingsOpen(true)}
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={onLogout}
-                className="gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
+            {/* Mobile: hamburger menu */}
+            <div className="sm:hidden">
+              <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-9 w-9">
+                    <Menu className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-40 p-0" align="end">
+                  <div className="flex flex-col">
+                    <Button
+                      variant="ghost"
+                      className="justify-start rounded-none h-10 px-3"
+                      onClick={() => {
+                        setIsSettingsOpen(true)
+                        setMenuOpen(false)
+                      }}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start rounded-none h-10 px-3"
+                      onClick={() => {
+                        onLogout()
+                        setMenuOpen(false)
+                      }}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
+          </div>
+          {/* Desktop: show Settings + Logout */}
+          <div className="hidden sm:flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onLogout}
+              className="px-4"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="ml-2">Logout</span>
+            </Button>
           </div>
         </div>
       </header>
@@ -314,31 +360,37 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
           </div>
         )}
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Borrowings</CardTitle>
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <Card className="flex flex-col min-h-28 sm:min-h-0">
+            <CardHeader className="pb-2 text-center">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
+                Active Borrowings
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{activeCount}</div>
+            <CardContent className="flex-1 flex items-end justify-center pb-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-blue-600">{activeCount}</div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Overdue Items</CardTitle>
+          <Card className="flex flex-col min-h-28 sm:min-h-0">
+            <CardHeader className="pb-2 text-center">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
+                Overdue Items
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-red-600">{overdueCount}</div>
+            <CardContent className="flex-1 flex items-end justify-center pb-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-red-600">{overdueCount}</div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Returned Items</CardTitle>
+          <Card className="flex flex-col min-h-28 sm:min-h-0">
+            <CardHeader className="pb-2 text-center">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
+                Returned Items
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">{returnedCount}</div>
+            <CardContent className="flex-1 flex items-end justify-center pb-4 text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-green-600">{returnedCount}</div>
             </CardContent>
           </Card>
         </div>
@@ -416,6 +468,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
                 key={record.id}
                 {...record}
                 id={record.id!}
+                itemImageUrl={defaultSettings.customItems.find((i) => i.name === record.itemName)?.imageUrl}
                 onReturn={(returnedBy: string) => handleReturn(record.id!, returnedBy)}
                 onExtend={(newDueDate: string) => handleExtend(record.id!, newDueDate)}
                 onEdit={() => {

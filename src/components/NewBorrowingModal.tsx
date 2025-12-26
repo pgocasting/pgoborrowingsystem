@@ -144,15 +144,18 @@ export default function NewBorrowingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] p-0 flex flex-col">
+        <div className="p-6 pb-4">
         <DialogHeader>
           <DialogTitle>Create New Borrowing Record</DialogTitle>
           <DialogDescription>
             Fill in the details below to create a new borrowing record.
           </DialogDescription>
         </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex-1 overflow-y-auto px-6">
+          <form onSubmit={handleSubmit} className="space-y-4 pb-6">
           {/* Item Name */}
           <div className="space-y-2">
             <Label htmlFor="itemName">Item Name *</Label>
@@ -327,9 +330,10 @@ export default function NewBorrowingModal({
               )}
             </div>
           </div>
-        </form>
+          </form>
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 bg-background border-t px-6 py-4">
           <Button
             type="button"
             variant="outline"
