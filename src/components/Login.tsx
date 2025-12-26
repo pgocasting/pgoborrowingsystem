@@ -125,17 +125,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           </button>
         </form>
 
-        {/* Footer Links */}
-        <div className="mt-6 flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-gray-700 cursor-pointer">
-            <input type="checkbox" className="rounded" />
-            Remember me
-          </label>
-          <a href="#" className="text-blue-500 hover:text-blue-600 font-medium">
-            Forgot password?
-          </a>
-        </div>
-
+        
               </div>
     </div>
   )
