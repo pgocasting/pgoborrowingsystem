@@ -152,6 +152,15 @@
 }
 
 .loading-rgb-bg {
+  position: relative;
+  isolation: isolate;
+}
+
+.loading-rgb-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: linear-gradient(120deg, #ff004c, #00d4ff, #7c3aed, #00ff85, #ffb800);
   background-size: 300% 300%;
   animation: rgb-gradient-move 4s ease-in-out infinite;

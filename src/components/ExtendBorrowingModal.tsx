@@ -72,7 +72,7 @@ export default function ExtendBorrowingModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[450px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Extend Borrowing Period</DialogTitle>
           <DialogDescription>
@@ -119,7 +119,7 @@ export default function ExtendBorrowingModal({
           {/* Quick Extend Options */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-700">Quick Extend Options</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -194,6 +194,7 @@ export default function ExtendBorrowingModal({
             type="button"
             variant="outline"
             onClick={() => handleOpenChange(false)}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
@@ -201,6 +202,7 @@ export default function ExtendBorrowingModal({
             type="button"
             onClick={handleConfirm}
             disabled={!newDueDate}
+            className="w-full sm:w-auto"
           >
             Confirm Extension
           </Button>

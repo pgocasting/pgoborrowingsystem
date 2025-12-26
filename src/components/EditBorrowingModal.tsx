@@ -19,11 +19,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+interface ItemSetting {
+  name: string
+  imageUrl?: string
+}
+
 interface DefaultSettings {
   defaultItemName: string
   defaultLocation: string
   defaultDepartment: string
-  customItems: string[]
+  customItems: ItemSetting[]
   customLocations: string[]
   customDepartments: string[]
 }
@@ -145,7 +150,7 @@ export default function EditBorrowingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Borrowing Record</DialogTitle>
           <DialogDescription>
@@ -170,8 +175,8 @@ export default function EditBorrowingModal({
               </SelectTrigger>
               <SelectContent>
                 {allItems.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
+                  <SelectItem key={item.name} value={item.name}>
+                    {item.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -179,7 +184,7 @@ export default function EditBorrowingModal({
             {errors.itemName && <p className="text-sm text-red-500">{errors.itemName}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name *</Label>
               <Input
@@ -283,7 +288,7 @@ export default function EditBorrowingModal({
             {errors.location && <p className="text-sm text-red-500">{errors.location}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="borrowDate">Borrow Date</Label>
               <Input id="borrowDate" name="borrowDate" type="date" value={formData.borrowDate} disabled />
@@ -303,10 +308,15 @@ export default function EditBorrowingModal({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" className="w-full sm:w-auto">Save Changes</Button>
           </DialogFooter>
         </form>
       </DialogContent>

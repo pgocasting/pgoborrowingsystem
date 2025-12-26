@@ -19,11 +19,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+interface ItemSetting {
+  name: string
+  imageUrl?: string
+}
+
 interface DefaultSettings {
   defaultItemName: string
   defaultLocation: string
   defaultDepartment: string
-  customItems: string[]
+  customItems: ItemSetting[]
   customLocations: string[]
   customDepartments: string[]
 }
@@ -139,7 +144,7 @@ export default function NewBorrowingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Borrowing Record</DialogTitle>
           <DialogDescription>
@@ -159,8 +164,8 @@ export default function NewBorrowingModal({
               </SelectTrigger>
               <SelectContent>
                 {allItems.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
+                  <SelectItem key={item.name} value={item.name}>
+                    {item.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -171,7 +176,7 @@ export default function NewBorrowingModal({
           </div>
 
           {/* Borrower Name - First and Last */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name *</Label>
               <Input
@@ -290,7 +295,7 @@ export default function NewBorrowingModal({
           </div>
 
           {/* Borrow Date */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="borrowDate">Borrow Date *</Label>
               <Input
@@ -329,10 +334,11 @@ export default function NewBorrowingModal({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
-          <Button type="submit" onClick={handleSubmit}>
+          <Button type="submit" onClick={handleSubmit} className="w-full sm:w-auto">
             Create Borrowing
           </Button>
         </DialogFooter>

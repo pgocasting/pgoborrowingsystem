@@ -46,7 +46,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
+    <div className="min-h-screen loading-rgb-bg flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
         {/* Header */}
         <div className="flex justify-center mb-8">

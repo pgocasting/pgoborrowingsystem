@@ -55,7 +55,7 @@ export default function ReturnItemModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[400px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Return Item</DialogTitle>
           <DialogDescription>
@@ -91,13 +91,14 @@ export default function ReturnItemModal({
             type="button"
             variant="outline"
             onClick={() => handleOpenChange(false)}
+            className="w-full sm:w-auto"
           >
             Cancel
           </Button>
           <Button
             type="button"
             onClick={handleConfirm}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
           >
             Confirm Return
           </Button>

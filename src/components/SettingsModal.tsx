@@ -20,11 +20,16 @@ interface SettingsModalProps {
   currentSettings: DefaultSettings
 }
 
+export interface ItemSetting {
+  name: string
+  imageUrl?: string
+}
+
 export interface DefaultSettings {
   defaultItemName: string
   defaultLocation: string
   defaultDepartment: string
-  customItems: string[]
+  customItems: ItemSetting[]
   customLocations: string[]
   customDepartments: string[]
 }
@@ -43,6 +48,7 @@ export default function SettingsModal({
 }: SettingsModalProps) {
   const [settings, setSettings] = useState<DefaultSettings>(currentSettings)
   const [newItem, setNewItem] = useState('')
+  const [newItemImageUrl, setNewItemImageUrl] = useState('')
   const [newLocation, setNewLocation] = useState('')
   const [newDepartment, setNewDepartment] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -60,14 +66,17 @@ export default function SettingsModal({
     setSettings(currentSettings)
   }, [currentSettings])
 
-  const allItems = [...PREDEFINED_ITEMS, ...settings.customItems]
+  const allItems: ItemSetting[] = [
+    ...PREDEFINED_ITEMS.map((name): ItemSetting => ({ name })),
+    ...settings.customItems,
+  ]
   const allLocations = [...PREDEFINED_LOCATIONS, ...settings.customLocations]
   const allDepartments = [...PREDEFINED_DEPARTMENTS, ...settings.customDepartments]
 
-  const handleDeleteItem = (item: string) => {
+  const handleDeleteItem = (itemName: string) => {
     setSettings((prev) => ({
       ...prev,
-      customItems: prev.customItems.filter((i) => i !== item),
+      customItems: prev.customItems.filter((i) => i.name !== itemName),
     }))
   }
 
@@ -140,7 +149,7 @@ export default function SettingsModal({
           if (!category || !value) return
 
           const categoryLower = category.toLowerCase()
-          if (categoryLower === 'item' && !allItems.includes(value)) {
+          if (categoryLower === 'item' && !allItems.some((i) => i.name === value)) {
             newItems.push(value)
           } else if (categoryLower === 'location' && !allLocations.includes(value)) {
             newLocations.push(value)
@@ -151,7 +160,16 @@ export default function SettingsModal({
 
         setSettings((prev) => ({
           ...prev,
-          customItems: [...new Set([...prev.customItems, ...newItems])],
+          customItems: (() => {
+            const byName = new Map<string, ItemSetting>()
+            for (const it of prev.customItems) {
+              byName.set(it.name, it)
+            }
+            for (const name of newItems) {
+              if (!byName.has(name)) byName.set(name, { name })
+            }
+            return Array.from(byName.values())
+          })(),
           customLocations: [...new Set([...prev.customLocations, ...newLocations])],
           customDepartments: [...new Set([...prev.customDepartments, ...newDepartments])],
         }))
@@ -226,68 +244,105 @@ department,Sample Department 2`
 
     const newValue = isItems ? newItem : isLocations ? newLocation : newDepartment
     const setNewValue = isItems ? setNewItem : isLocations ? setNewLocation : setNewDepartment
-    const items = isItems ? settings.customItems : isLocations ? settings.customLocations : settings.customDepartments
-    const allItemsList = isItems ? allItems : isLocations ? allLocations : allDepartments
+    const items = isItems
+      ? (settings.customItems as ItemSetting[])
+      : isLocations
+        ? settings.customLocations
+        : settings.customDepartments
+    const allItemNames = isItems ? allItems.map((i) => i.name) : []
     const handleDelete = isItems ? handleDeleteItem : isLocations ? handleDeleteLocation : handleDeleteDepartment
     const placeholder = isItems ? 'Add new item' : isLocations ? 'Add new location' : 'Add new department'
     const label = isItems ? 'Items' : isLocations ? 'Locations' : 'Departments'
 
     return (
       <div className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            placeholder={placeholder}
-            value={newValue}
-            onChange={(e) => setNewValue(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && newValue.trim()) {
-                if (!allItemsList.includes(newValue.trim())) {
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1 space-y-2">
+            <Input
+              placeholder={placeholder}
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && newValue.trim()) {
+                  const name = newValue.trim()
+                  const img = newItemImageUrl.trim()
                   if (isItems) {
-                    setSettings((prev) => ({
-                      ...prev,
-                      customItems: [...prev.customItems, newValue.trim()],
-                    }))
+                    if (!allItemNames.includes(name)) {
+                      setSettings((prev) => ({
+                        ...prev,
+                        customItems: [...prev.customItems, { name, imageUrl: img ? img : undefined }],
+                      }))
+                      setNewValue('')
+                      setNewItemImageUrl('')
+                    }
                   } else if (isLocations) {
-                    setSettings((prev) => ({
-                      ...prev,
-                      customLocations: [...prev.customLocations, newValue.trim()],
-                    }))
+                    if (!allLocations.includes(name)) {
+                      setSettings((prev) => ({
+                        ...prev,
+                        customLocations: [...prev.customLocations, name],
+                      }))
+                      setNewValue('')
+                    }
                   } else {
-                    setSettings((prev) => ({
-                      ...prev,
-                      customDepartments: [...prev.customDepartments, newValue.trim()],
-                    }))
+                    if (!allDepartments.includes(name)) {
+                      setSettings((prev) => ({
+                        ...prev,
+                        customDepartments: [...prev.customDepartments, name],
+                      }))
+                      setNewValue('')
+                    }
                   }
-                  setNewValue('')
                 }
-              }
-            }}
-            className="flex-1"
-          />
+              }}
+              className="flex-1"
+            />
+            {isItems && (
+              <Input
+                placeholder="Image URL (optional)"
+                value={newItemImageUrl}
+                onChange={(e) => setNewItemImageUrl(e.target.value)}
+              />
+            )}
+          </div>
           <Button
             onClick={() => {
-              if (newValue.trim() && !allItemsList.includes(newValue.trim())) {
-                if (isItems) {
+              const name = newValue.trim()
+              if (!name) return
+              const img = newItemImageUrl.trim()
+
+              if (isItems) {
+                if (!allItemNames.includes(name)) {
                   setSettings((prev) => ({
                     ...prev,
-                    customItems: [...prev.customItems, newValue.trim()],
+                    customItems: [...prev.customItems, { name, imageUrl: img ? img : undefined }],
                   }))
-                } else if (isLocations) {
-                  setSettings((prev) => ({
-                    ...prev,
-                    customLocations: [...prev.customLocations, newValue.trim()],
-                  }))
-                } else {
-                  setSettings((prev) => ({
-                    ...prev,
-                    customDepartments: [...prev.customDepartments, newValue.trim()],
-                  }))
+                  setNewValue('')
+                  setNewItemImageUrl('')
                 }
+                return
+              }
+
+              if (isLocations) {
+                if (!allLocations.includes(name)) {
+                  setSettings((prev) => ({
+                    ...prev,
+                    customLocations: [...prev.customLocations, name],
+                  }))
+                  setNewValue('')
+                }
+                return
+              }
+
+              if (!allDepartments.includes(name)) {
+                setSettings((prev) => ({
+                  ...prev,
+                  customDepartments: [...prev.customDepartments, name],
+                }))
                 setNewValue('')
               }
             }}
             size="sm"
-            className="gap-1"
+            className="gap-1 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             Add
@@ -298,14 +353,32 @@ department,Sample Department 2`
           <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto">
             {items.map((item) => (
               <div
-                key={item}
+                key={isItems ? (item as ItemSetting).name : (item as string)}
                 className="flex items-center justify-between bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm hover:shadow-md transition-shadow"
               >
-                <span className="text-gray-800 font-medium">{item}</span>
+                {isItems ? (
+                  <div className="flex items-center gap-3 min-w-0">
+                    {(item as ItemSetting).imageUrl ? (
+                      <img
+                        src={(item as ItemSetting).imageUrl}
+                        alt={(item as ItemSetting).name}
+                        className="h-10 w-10 rounded object-cover border shrink-0"
+                        onError={(e) => {
+                          ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded bg-white/70 border shrink-0" />
+                    )}
+                    <span className="text-gray-800 font-medium truncate">{(item as ItemSetting).name}</span>
+                  </div>
+                ) : (
+                  <span className="text-gray-800 font-medium">{item as string}</span>
+                )}
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDelete(item)}
+                  onClick={() => handleDelete(isItems ? (item as ItemSetting).name : (item as string))}
                   className="h-6 w-6 p-0 hover:bg-red-100"
                 >
                   <X className="w-4 h-4 text-red-600" />
@@ -325,7 +398,7 @@ department,Sample Department 2`
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader className="border-b pb-4">
           <div className="flex flex-col w-full">
             <DialogTitle className="text-2xl font-bold">Settings</DialogTitle>
@@ -336,10 +409,10 @@ department,Sample Department 2`
         </DialogHeader>
 
         {/* Tab Navigation */}
-        <div className="flex gap-1 border-b">
+        <div className="flex gap-1 border-b overflow-x-auto">
           <button
             onClick={() => setActiveTab('items')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'items'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -349,7 +422,7 @@ department,Sample Department 2`
           </button>
           <button
             onClick={() => setActiveTab('locations')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'locations'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -359,7 +432,7 @@ department,Sample Department 2`
           </button>
           <button
             onClick={() => setActiveTab('departments')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'departments'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -369,7 +442,7 @@ department,Sample Department 2`
           </button>
           <button
             onClick={() => setActiveTab('password')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'password'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -379,7 +452,7 @@ department,Sample Department 2`
           </button>
           <button
             onClick={() => setActiveTab('import')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ml-auto ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'import'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -482,10 +555,10 @@ department,Sample Department 2`
                 <p className="text-sm text-gray-600 mb-4">
                   Import items, locations, and departments from a CSV file. Format: category,value (e.g., item,Printer)
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
                     onClick={() => fileInputRef.current?.click()}
-                    className="gap-2"
+                    className="gap-2 w-full sm:w-auto"
                   >
                     <Upload className="w-4 h-4" />
                     Choose File
@@ -495,6 +568,8 @@ department,Sample Department 2`
                     type="file"
                     accept=".csv,.txt"
                     onChange={handleImportExcel}
+                    aria-label="Import CSV file"
+                    title="Import CSV file"
                     className="hidden"
                   />
                 </div>
@@ -511,7 +586,7 @@ department,Sample Department 2`
                 <Button
                   onClick={handleExportTemplate}
                   variant="outline"
-                  className="gap-2"
+                  className="gap-2 w-full sm:w-auto"
                 >
                   <Download className="w-4 h-4" />
                   Download Template
@@ -534,23 +609,25 @@ department,HR Department`}
         </div>
 
         <DialogFooter>
-          <div className="flex items-center justify-between w-full">
-            <div>
+          <div className="flex flex-col gap-3 w-full sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-h-5">
               {successMessage && (
                 <p className="text-sm text-green-600 font-medium">{successMessage}</p>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleReset}
+                className="w-full sm:w-auto"
               >
                 Reset to None
               </Button>
               <Button
                 type="button"
                 onClick={handleSave}
+                className="w-full sm:w-auto"
               >
                 Save Settings
               </Button>

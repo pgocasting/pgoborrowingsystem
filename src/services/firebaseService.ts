@@ -28,12 +28,17 @@ export interface BorrowingRecord {
   createdAt?: Timestamp
 }
 
+export interface ItemSetting {
+  name: string
+  imageUrl?: string
+}
+
 export interface DefaultSettings {
   id?: string
   defaultItemName: string
   defaultLocation: string
   defaultDepartment: string
-  customItems: string[]
+  customItems: ItemSetting[]
   customLocations: string[]
   customDepartments: string[]
   userId?: string
@@ -241,10 +246,30 @@ export const getDefaultSettings = async (): Promise<DefaultSettings | null> => {
     }
 
     const doc = querySnapshot.docs[0]
+    const data = doc.data() as Record<string, unknown>
+
+    const rawCustomItems = (data.customItems as unknown) ?? []
+    const normalizedCustomItems: ItemSetting[] = Array.isArray(rawCustomItems)
+      ? rawCustomItems
+          .map((i) => {
+            if (typeof i === 'string') return { name: i }
+            if (i && typeof i === 'object' && 'name' in i && typeof (i as any).name === 'string') {
+              const img = (i as any).imageUrl
+              return {
+                name: (i as any).name,
+                imageUrl: typeof img === 'string' && img.trim() ? img.trim() : undefined,
+              }
+            }
+            return null
+          })
+          .filter(Boolean) as ItemSetting[]
+      : []
+
     return {
       id: doc.id,
-      ...doc.data(),
-    } as DefaultSettings
+      ...(data as Omit<DefaultSettings, 'id' | 'customItems'>),
+      customItems: normalizedCustomItems,
+    }
   } catch (error) {
     console.error('Error getting default settings:', error)
     throw error
