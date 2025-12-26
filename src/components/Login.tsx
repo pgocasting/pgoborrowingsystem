@@ -136,14 +136,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           </a>
         </div>
 
-        {/* Sign Up Link */}
-        <p className="text-center text-gray-600 mt-6 text-sm">
-          Don't have an account?{' '}
-          <a href="#" className="text-blue-500 hover:text-blue-600 font-medium">
-            Sign up
-          </a>
-        </p>
-      </div>
+              </div>
     </div>
   )
 }
