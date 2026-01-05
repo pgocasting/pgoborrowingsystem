@@ -5,8 +5,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
+  type Auth,
 } from 'firebase/auth'
-import { auth, db } from '@/config/firebase'
+import { auth, db, secondaryAuth } from '@/config/firebase'
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 
 export interface UserProfile {
@@ -22,11 +23,12 @@ export const createUserAccount = async (
   username: string,
   email: string,
   password: string,
-  role: 'admin' | 'user' = 'user'
+  role: 'admin' | 'user' = 'user',
+  authInstance: Auth = auth
 ): Promise<UserProfile> => {
   try {
     // Create Firebase Auth user
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    const userCredential = await createUserWithEmailAndPassword(authInstance, email, password)
     const user = userCredential.user
 
     // Create user profile in Firestore
@@ -45,6 +47,14 @@ export const createUserAccount = async (
     console.error('Error creating user account:', error)
     throw error
   }
+}
+
+export const createAdminAccount = async (
+  username: string,
+  email: string,
+  password: string
+): Promise<UserProfile> => {
+  return createUserAccount(username, email, password, 'admin', secondaryAuth)
 }
 
 // Sign in user

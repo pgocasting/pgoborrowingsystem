@@ -1,4 +1,4 @@
-import { createUserAccount, checkUsernameExists } from '@/services/authService'
+import { createAdminAccount, checkUsernameExists } from '@/services/authService'
 
 /**
  * Initialize admin account
@@ -16,11 +16,10 @@ export const initializeAdminAccount = async () => {
     }
 
     // Create admin account
-    const adminProfile = await createUserAccount(
+    const adminProfile = await createAdminAccount(
       'Admin',
       'admin@pgoborrowingsystem.com',
-      'admin123',
-      'admin'
+      'admin123'
     )
 
     console.log('Admin account created successfully:', adminProfile)

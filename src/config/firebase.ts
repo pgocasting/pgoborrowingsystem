@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app'
+import { getApp, getApps, initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
@@ -20,5 +20,11 @@ export const db = getFirestore(app)
 
 // Initialize Auth
 export const auth = getAuth(app)
+
+const secondaryApp = getApps().some((a) => a.name === 'secondary')
+  ? getApp('secondary')
+  : initializeApp(firebaseConfig, 'secondary')
+
+export const secondaryAuth = getAuth(secondaryApp)
 
 export default app
