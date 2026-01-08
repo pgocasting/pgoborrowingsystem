@@ -34,10 +34,10 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  /* Animated blue gradient background */
-  background-image: linear-gradient(-45deg, #0b2a64, #1e40af, #3b82f6, #93c5fd);
+  /* RGB animated gradient */
+  background-image: linear-gradient(-45deg, #ff2d55, #00e676, #2f80ff, #ffcc00);
   background-size: 400% 400%;
-  animation: gradient-move 24s ease-in-out infinite;
+  animation: gradient-move 20s ease-in-out infinite, hue-shift 40s linear infinite;
 }
 
 .loading-rgb-bg::after {
@@ -46,17 +46,19 @@
   inset: 0;
   pointer-events: none;
   z-index: -1;
-  /* Optic moving light sweep overlay */
+  /* Programmer-style: faint grid + subtle moving code stripes */
   background-image:
-    radial-gradient(60% 120% at 50% 50%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.15) 18%, rgba(255,255,255,0.06) 32%, rgba(255,255,255,0.0) 55%),
-    linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.12) 12%, rgba(255,255,255,0.22) 18%, rgba(255,255,255,0.12) 24%, rgba(255,255,255,0.0) 36%);
-  background-repeat: no-repeat, no-repeat;
-  background-size: 55% 140%, 28% 100%;
-  background-position: -40% 50%, -30% 0%;
-  mix-blend-mode: screen;
-  filter: blur(0.5px) saturate(110%);
-  animation: optic-sweep 10s ease-in-out infinite;
-  opacity: 0.75;
+    /* horizontal grid lines */
+    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+    /* vertical grid lines */
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    /* animated code stripes */
+    repeating-linear-gradient(90deg, rgba(59,130,246,0.10) 0 2px, rgba(147,197,253,0.10) 2px 4px, transparent 4px 8px);
+  background-size: 60px 60px, 60px 60px, 320px 100%;
+  background-position: 0 0, 0 0, 0 0;
+  background-repeat: repeat, repeat, repeat;
+  animation: code-scroll 30s linear infinite;
+  opacity: 0.9;
 }
 
 @keyframes galaxy-drift {
@@ -88,4 +90,18 @@
     /* slower far layer, faster near layer */
     background-position: 600px 300px, 1200px 600px;
   }
+}
+
+/* Horizontal slow code scroll */
+@keyframes code-scroll {
+  0% { background-position: 0 0, 0 0, 0 0; }
+  50% { background-position: 0 0, 0 0, -320px 0; }
+  100% { background-position: 0 0, 0 0, -640px 0; }
+}
+
+/* Subtle hue rotation for extra RGB vibe */
+@keyframes hue-shift {
+  0% { filter: hue-rotate(0deg) saturate(105%); }
+  50% { filter: hue-rotate(180deg) saturate(110%); }
+  100% { filter: hue-rotate(360deg) saturate(105%); }
 }
