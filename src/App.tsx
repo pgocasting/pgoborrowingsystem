@@ -6,6 +6,8 @@ import { setupInitialData } from './utils/initializeAdmin'
 import { auth } from '@/config/firebase'
 import { getCurrentUserProfile, signOutUser, type UserProfile } from '@/services/authService'
 
+import './galaxy.css'
+
 function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)

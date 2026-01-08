@@ -1,0 +1,67 @@
+/* Galaxy background override for loading screens */
+
+.loading-rgb-bg {
+  position: relative;
+  isolation: isolate;
+}
+
+.loading-rgb-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: #070b1a !important;
+  background-image:
+    radial-gradient(1000px 600px at 20% 30%, rgba(118, 0, 255, 0.35), rgba(118, 0, 255, 0) 60%),
+    radial-gradient(800px 500px at 80% 20%, rgba(0, 180, 255, 0.28), rgba(0, 180, 255, 0) 60%),
+    radial-gradient(700px 700px at 60% 80%, rgba(255, 0, 120, 0.22), rgba(255, 0, 120, 0) 60%);
+  background-blend-mode: screen;
+  filter: saturate(115%);
+  animation: galaxy-drift 36s ease-in-out infinite alternate !important;
+}
+
+.loading-rgb-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><rect width='120' height='120' fill='none'/><g fill='white' opacity='0.85'><circle cx='10' cy='20' r='0.7'/><circle cx='40' cy='30' r='0.9'/><circle cx='70' cy='15' r='0.6'/><circle cx='95' cy='40' r='0.8'/><circle cx='20' cy='85' r='0.7'/><circle cx='55' cy='70' r='0.6'/><circle cx='85' cy='90' r='0.9'/><circle cx='15' cy='55' r='0.6'/><circle cx='105' cy='75' r='0.7'/><circle cx='60' cy='100' r='0.8'/></g></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='none'/><g fill='white' opacity='0.5'><circle cx='30' cy='50' r='0.6'/><circle cx='120' cy='20' r='0.5'/><circle cx='170' cy='90' r='0.7'/><circle cx='80' cy='150' r='0.6'/><circle cx='40' cy='180' r='0.5'/><circle cx='10' cy='110' r='0.6'/><circle cx='190' cy='170' r='0.5'/></g></svg>");
+  background-size: 220px 220px, 420px 420px;
+  background-repeat: repeat, repeat;
+  animation: stars-twinkle 2.8s ease-in-out infinite alternate, stars-drift 90s linear infinite;
+  opacity: 0.9;
+}
+
+@keyframes galaxy-drift {
+  0% {
+    background-position: 0% 0%, 100% 0%, 50% 100%;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    background-position: 25% 15%, 75% 8%, 45% 85%;
+    transform: scale(1.015) rotate(2deg);
+  }
+  100% {
+    background-position: 45% 30%, 55% 15%, 35% 75%;
+    transform: scale(1.03) rotate(-2deg);
+  }
+}
+
+@keyframes stars-twinkle {
+  0% { opacity: 0.7; filter: brightness(0.9); }
+  50% { opacity: 0.95; filter: brightness(1.15); }
+  100% { opacity: 0.75; filter: brightness(1.0); }
+}
+
+@keyframes stars-drift {
+  0% {
+    background-position: 0px 0px, 0px 0px;
+  }
+  100% {
+    /* slower far layer, faster near layer */
+    background-position: 600px 300px, 1200px 600px;
+  }
+}
