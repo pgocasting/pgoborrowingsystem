@@ -3,6 +3,30 @@
 .loading-rgb-bg {
   position: relative;
   isolation: isolate;
+  /* Prevent scrollbars caused by animated layers expanding beyond bounds */
+  overflow: hidden;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+/* New gradient animation */
+@keyframes gradient-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Optic sweep across the screen */
+@keyframes optic-sweep {
+  0% {
+    background-position: -40% 50%, -30% 0%;
+  }
+  45% {
+    background-position: 50% 50%, 40% 0%;
+  }
+  100% {
+    background-position: 140% 50%, 130% 0%;
+  }
 }
 
 .loading-rgb-bg::before {
@@ -10,14 +34,10 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-color: #070b1a !important;
-  background-image:
-    radial-gradient(1000px 600px at 20% 30%, rgba(118, 0, 255, 0.35), rgba(118, 0, 255, 0) 60%),
-    radial-gradient(800px 500px at 80% 20%, rgba(0, 180, 255, 0.28), rgba(0, 180, 255, 0) 60%),
-    radial-gradient(700px 700px at 60% 80%, rgba(255, 0, 120, 0.22), rgba(255, 0, 120, 0) 60%);
-  background-blend-mode: screen;
-  filter: saturate(115%);
-  animation: galaxy-drift 36s ease-in-out infinite alternate !important;
+  /* Animated blue gradient background */
+  background-image: linear-gradient(-45deg, #0b2a64, #1e40af, #3b82f6, #93c5fd);
+  background-size: 400% 400%;
+  animation: gradient-move 24s ease-in-out infinite;
 }
 
 .loading-rgb-bg::after {
@@ -26,13 +46,17 @@
   inset: 0;
   pointer-events: none;
   z-index: -1;
+  /* Optic moving light sweep overlay */
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><rect width='120' height='120' fill='none'/><g fill='white' opacity='0.85'><circle cx='10' cy='20' r='0.7'/><circle cx='40' cy='30' r='0.9'/><circle cx='70' cy='15' r='0.6'/><circle cx='95' cy='40' r='0.8'/><circle cx='20' cy='85' r='0.7'/><circle cx='55' cy='70' r='0.6'/><circle cx='85' cy='90' r='0.9'/><circle cx='15' cy='55' r='0.6'/><circle cx='105' cy='75' r='0.7'/><circle cx='60' cy='100' r='0.8'/></g></svg>"),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='none'/><g fill='white' opacity='0.5'><circle cx='30' cy='50' r='0.6'/><circle cx='120' cy='20' r='0.5'/><circle cx='170' cy='90' r='0.7'/><circle cx='80' cy='150' r='0.6'/><circle cx='40' cy='180' r='0.5'/><circle cx='10' cy='110' r='0.6'/><circle cx='190' cy='170' r='0.5'/></g></svg>");
-  background-size: 220px 220px, 420px 420px;
-  background-repeat: repeat, repeat;
-  animation: stars-twinkle 2.8s ease-in-out infinite alternate, stars-drift 90s linear infinite;
-  opacity: 0.9;
+    radial-gradient(60% 120% at 50% 50%, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.15) 18%, rgba(255,255,255,0.06) 32%, rgba(255,255,255,0.0) 55%),
+    linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.12) 12%, rgba(255,255,255,0.22) 18%, rgba(255,255,255,0.12) 24%, rgba(255,255,255,0.0) 36%);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 55% 140%, 28% 100%;
+  background-position: -40% 50%, -30% 0%;
+  mix-blend-mode: screen;
+  filter: blur(0.5px) saturate(110%);
+  animation: optic-sweep 10s ease-in-out infinite;
+  opacity: 0.75;
 }
 
 @keyframes galaxy-drift {

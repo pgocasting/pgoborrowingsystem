@@ -23,6 +23,7 @@ interface BorrowingItemProps {
   onReturn?: (returnedBy: string) => void
   onExtend?: (newDueDate: string) => void
   onEdit?: () => void
+  onDelete?: () => void
 }
 
 export default function BorrowingItem({
@@ -41,6 +42,7 @@ export default function BorrowingItem({
   onReturn,
   onExtend,
   onEdit,
+  onDelete,
 }: BorrowingItemProps) {
   const [isExtendModalOpen, setIsExtendModalOpen] = useState(false)
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false)
@@ -150,6 +152,19 @@ export default function BorrowingItem({
                   </Button>
                 )}
               </>
+            )}
+            {onDelete && status !== 'returned' && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation()
+                  onDelete()
+                }}
+                className="text-xs"
+              >
+                Delete
+              </Button>
             )}
             <Badge className={`${getStatusColor(status)} border-0 shrink-0`}>{getStatusLabel(status)}</Badge>
           </div>
@@ -306,7 +321,8 @@ export default function BorrowingItem({
   const backCard = (
     <Card className="hover:shadow-lg transition-shadow h-full flex flex-col bg-white">
       <CardHeader className="pb-3 border-b">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 justify-between">
+          <div className="flex items-start gap-3">
           {itemImageUrl ? (
             <img
               src={itemImageUrl}
@@ -321,6 +337,20 @@ export default function BorrowingItem({
             <CardTitle className="text-lg font-bold">Item Details</CardTitle>
             <CardDescription className="text-xs mt-0.5">Tap to flip back</CardDescription>
           </div>
+          </div>
+          {onDelete && status === 'returned' && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation()
+                onDelete()
+              }}
+              className="text-xs"
+            >
+              Delete
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="flex-1 pt-4">
@@ -363,12 +393,17 @@ export default function BorrowingItem({
 
   return (
     <div
-      onClick={() => {
-        if (status === 'returned') {
-          setIsFlipped(!isFlipped)
+      onMouseEnter={() => {
+        if (status === 'returned' && !isMobile) {
+          setIsFlipped(true)
         }
       }}
-      className={`min-h-[26rem] sm:h-[26rem] ${status === 'returned' ? 'cursor-pointer' : 'cursor-default'}`}
+      onMouseLeave={() => {
+        if (status === 'returned' && !isMobile) {
+          setIsFlipped(false)
+        }
+      }}
+      className={`min-h-[26rem] sm:h-[26rem] cursor-default`}
       style={{
         perspective: '1000px',
       }}
@@ -423,7 +458,8 @@ export default function BorrowingItem({
             >
               <Card className="h-full flex flex-col bg-white hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3 border-b">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 justify-between">
+                    <div className="flex items-start gap-3">
                     {itemImageUrl ? (
                       <img
                         src={itemImageUrl}
@@ -438,6 +474,20 @@ export default function BorrowingItem({
                       <CardTitle className="text-lg font-bold">Item Details</CardTitle>
                       <CardDescription className="text-xs mt-0.5">Click to flip back</CardDescription>
                     </div>
+                    </div>
+                    {onDelete && status === 'returned' && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation()
+                          onDelete()
+                        }}
+                        className="text-xs"
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="flex-1 pt-4">

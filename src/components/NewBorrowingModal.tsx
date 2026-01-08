@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,11 @@ interface NewBorrowingModalProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (data: NewBorrowingData) => void
   defaultSettings?: DefaultSettings
+  existingRecords?: Array<{
+    itemName: string
+    borrowDate: string
+    status: 'active' | 'overdue' | 'returned'
+  }>
 }
 
 export interface NewBorrowingData {
@@ -55,6 +60,7 @@ export default function NewBorrowingModal({
   onOpenChange,
   onSubmit,
   defaultSettings,
+  existingRecords = [],
 }: NewBorrowingModalProps) {
   const [formData, setFormData] = useState<NewBorrowingData>({
     itemName: '',
@@ -73,6 +79,22 @@ export default function NewBorrowingModal({
   const allItems = defaultSettings?.customItems || []
   const allLocations = defaultSettings?.customLocations || []
   const allDepartments = defaultSettings?.customDepartments || []
+
+  // Compute items unavailable on the selected borrow date (already borrowed and not returned)
+  const unavailableItemsForDate = new Set(
+    existingRecords
+      .filter((r) => (r.borrowDate || '').slice(0, 10) === formData.borrowDate && r.status !== 'returned')
+      .map((r) => r.itemName)
+  )
+
+  // If current item becomes unavailable when date changes, clear selection and show error
+  useEffect(() => {
+    if (formData.itemName && unavailableItemsForDate.has(formData.itemName)) {
+      setFormData((prev) => ({ ...prev, itemName: '' }))
+      setErrors((prev) => ({ ...prev, itemName: 'This item is already borrowed on the selected date' }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.borrowDate])
 
   const validateForm = (): boolean => {
     const newErrors: Partial<NewBorrowingData> = {}
@@ -100,6 +122,10 @@ export default function NewBorrowingModal({
     }
     if (formData.borrowDate && formData.dueDate && formData.borrowDate >= formData.dueDate) {
       newErrors.dueDate = 'Due date must be after borrow date'
+    }
+    // Business rule: an item cannot be borrowed twice on the same date unless the previous is returned
+    if (formData.itemName && unavailableItemsForDate.has(formData.itemName)) {
+      newErrors.itemName = 'This item is already borrowed on the selected date'
     }
 
     setErrors(newErrors)
@@ -167,8 +193,13 @@ export default function NewBorrowingModal({
               </SelectTrigger>
               <SelectContent>
                 {allItems.map((item) => (
-                  <SelectItem key={item.name} value={item.name}>
+                  <SelectItem
+                    key={item.name}
+                    value={item.name}
+                    disabled={unavailableItemsForDate.has(item.name)}
+                  >
                     {item.name}
+                    {unavailableItemsForDate.has(item.name) ? ' (Unavailable today)' : ''}
                   </SelectItem>
                 ))}
               </SelectContent>

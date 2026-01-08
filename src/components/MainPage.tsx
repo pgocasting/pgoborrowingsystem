@@ -11,10 +11,19 @@ import SettingsModal from './SettingsModal'
 import type { DefaultSettings } from './SettingsModal'
 import ReturnSuccessModal from './ReturnSuccessModal'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   addBorrowingRecord,
   getBorrowingRecords,
   updateBorrowingRecord,
   getDefaultSettings,
+  deleteBorrowingRecord,
   type BorrowingRecord,
 } from '@/services/firebaseService'
 import {
@@ -55,6 +64,8 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   const [borrowingRecords, setBorrowingRecords] = useState<BorrowingRecord[]>([])
   const [editingRecord, setEditingRecord] = useState<BorrowingRecord | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<'borrowed' | 'overdue' | 'returned'>('borrowed')
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   
   // Load data from Firebase on component mount
@@ -181,12 +192,19 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     )
   }
 
-  const filteredRecords = borrowingRecords.filter(
-    (record) =>
-      record.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${record.firstName} ${record.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (record.id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  )
+  const filteredRecords = borrowingRecords
+    .filter(
+      (record) =>
+        record.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${record.firstName} ${record.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (record.id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+    )
+    .filter((r) => {
+      if (statusFilter === 'returned') return r.status === 'returned'
+      if (statusFilter === 'overdue') return r.status === 'overdue'
+      // borrowed = active only
+      return r.status === 'active'
+    })
 
   const handleReturn = async (id: string, returnedBy: string) => {
     try {
@@ -231,6 +249,21 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     } catch (error) {
       console.error('Error extending due date:', error)
     }
+  }
+
+  const performDelete = async (id: string) => {
+    try {
+      const record = borrowingRecords.find((r) => r.id === id)
+      if (!record?.docId) return
+      await deleteBorrowingRecord(record.docId, record.borrowDate)
+      setBorrowingRecords(borrowingRecords.filter((r) => r.id !== id))
+    } catch (error) {
+      console.error('Error deleting record:', error)
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id)
   }
 
   const handleNewBorrowing = async (data: NewBorrowingData) => {
@@ -357,8 +390,9 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             {submitError}
           </div>
         )}
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        {/* Sticky Top: Stats + Search */}
+        <div className="sticky top-0 z-20 bg-gray-50 pt-4 pb-3 mb-6">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4">
           <Card className="flex flex-col min-h-28 sm:min-h-0">
             <CardHeader className="pb-2 text-center">
               <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
@@ -391,10 +425,33 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
               <div className="text-2xl sm:text-3xl font-bold text-green-600">{returnedCount}</div>
             </CardContent>
           </Card>
-        </div>
+          </div>
 
-        {/* Search and Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {/* Tabs + Search and Actions */}
+          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant={statusFilter === 'borrowed' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('borrowed')}
+              className="h-10"
+            >
+              Borrowed
+            </Button>
+            <Button
+              variant={statusFilter === 'overdue' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('overdue')}
+              className="h-10"
+            >
+              Overdue
+            </Button>
+            <Button
+              variant={statusFilter === 'returned' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('returned')}
+              className="h-10"
+            >
+              Returned
+            </Button>
+          </div>
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
@@ -408,6 +465,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             <Plus className="w-4 h-4" />
             New Borrowing
           </Button>
+          </div>
         </div>
 
         {/* New Borrowing Modal */}
@@ -416,6 +474,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
           onOpenChange={setIsModalOpen}
           onSubmit={handleNewBorrowing}
           defaultSettings={defaultSettings}
+          existingRecords={borrowingRecords}
         />
 
         <EditBorrowingModal
@@ -473,6 +532,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
                   setEditingRecord(record)
                   setIsEditModalOpen(true)
                 }}
+                onDelete={() => handleDelete(record.id!)}
               />
             ))
           ) : (
@@ -481,6 +541,33 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             </div>
           )}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        <Dialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete borrowing record</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete the borrowing record.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (deleteConfirmId) {
+                    const id = deleteConfirmId
+                    setDeleteConfirmId(null)
+                    await performDelete(id)
+                  }
+                }}
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )
