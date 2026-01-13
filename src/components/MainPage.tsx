@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LogOut, Plus, Search, Settings, Menu } from 'lucide-react'
@@ -192,6 +193,16 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     )
   }
 
+  // Helper to determine overdue based on dueDate for non-returned items
+  const isRecordOverdue = (r: BorrowingRecord) => {
+    if (r.status === 'returned') return false
+    try {
+      return new Date(r.dueDate) < new Date()
+    } catch {
+      return false
+    }
+  }
+
   const filteredRecords = borrowingRecords
     .filter(
       (record) =>
@@ -201,9 +212,9 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     )
     .filter((r) => {
       if (statusFilter === 'returned') return r.status === 'returned'
-      if (statusFilter === 'overdue') return r.status === 'overdue'
-      // borrowed = active only
-      return r.status === 'active'
+      if (statusFilter === 'overdue') return r.status === 'overdue' || (r.status === 'active' && isRecordOverdue(r))
+      // borrowed = active but NOT overdue
+      return r.status === 'active' && !isRecordOverdue(r)
     })
 
   const handleReturn = async (id: string, returnedBy: string) => {
@@ -298,8 +309,12 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     }
   }
 
-  const activeCount = borrowingRecords.filter((r) => r.status === 'active').length
-  const overdueCount = borrowingRecords.filter((r) => r.status === 'overdue').length
+  const overdueCount = borrowingRecords.filter(
+    (r) => r.status === 'overdue' || (r.status === 'active' && isRecordOverdue(r))
+  ).length
+  const activeCount = borrowingRecords.filter(
+    (r) => r.status === 'active' && !isRecordOverdue(r)
+  ).length
   const returnedCount = borrowingRecords.filter((r) => r.status === 'returned').length
 
   return (
@@ -433,23 +448,26 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             <Button
               variant={statusFilter === 'borrowed' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('borrowed')}
-              className="h-10"
+              className="h-10 gap-2"
             >
-              Borrowed
+              <span>Borrowed</span>
+              <Badge className="bg-yellow-100 text-yellow-800 border-transparent">{activeCount}</Badge>
             </Button>
             <Button
               variant={statusFilter === 'overdue' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('overdue')}
-              className="h-10"
+              className="h-10 gap-2"
             >
-              Overdue
+              <span>Overdue</span>
+              <Badge className="bg-red-100 text-red-800 border-transparent">{overdueCount}</Badge>
             </Button>
             <Button
               variant={statusFilter === 'returned' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('returned')}
-              className="h-10"
+              className="h-10 gap-2"
             >
-              Returned
+              <span>Returned</span>
+              <Badge className="bg-green-100 text-green-800 border-transparent">{returnedCount}</Badge>
             </Button>
           </div>
           <div className="flex-1 relative">

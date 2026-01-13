@@ -241,6 +241,7 @@ department,Sample Department 2`
   const renderCategoryContent = (category: 'items' | 'locations' | 'departments') => {
     const isItems = category === 'items'
     const isLocations = category === 'locations'
+    const isDepartments = category === 'departments'
 
     const newValue = isItems ? newItem : isLocations ? newLocation : newDepartment
     const setNewValue = isItems ? setNewItem : isLocations ? setNewLocation : setNewDepartment
@@ -249,6 +250,10 @@ department,Sample Department 2`
       : isLocations
         ? settings.customLocations
         : settings.customDepartments
+    // For display: sort departments alphabetically without mutating state
+    const displayedItems = isDepartments
+      ? [...(items as string[])].sort((a, b) => a.localeCompare(b))
+      : items
     const allItemNames = isItems ? allItems.map((i) => i.name) : []
     const handleDelete = isItems ? handleDeleteItem : isLocations ? handleDeleteLocation : handleDeleteDepartment
     const placeholder = isItems ? 'Add new item' : isLocations ? 'Add new location' : 'Add new department'
@@ -349,9 +354,17 @@ department,Sample Department 2`
           </Button>
         </div>
 
-        {items.length > 0 ? (
-          <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto">
-            {items.map((item) => (
+        {displayedItems.length > 0 ? (
+          <div
+            className={`${
+              isItems
+                ? 'grid grid-cols-1 sm:grid-cols-2'
+                : isLocations
+                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                  : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+            } gap-2 max-h-[300px] overflow-y-auto`}
+          >
+            {displayedItems.map((item) => (
               <div
                 key={isItems ? (item as ItemSetting).name : (item as string)}
                 className="flex items-center justify-between bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm hover:shadow-md transition-shadow"

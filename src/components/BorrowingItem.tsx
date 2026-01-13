@@ -89,6 +89,19 @@ export default function BorrowingItem({
   }
 
   const isOverdue = new Date(dueDate) < new Date() && status === 'active'
+  const overdueDays = isOverdue
+    ? Math.ceil((Date.now() - new Date(dueDate).getTime()) / (1000 * 60 * 60 * 24))
+    : 0
+
+  // Returned late detection and days count
+  const wasReturnedLate =
+    status === 'returned' && returnedAt ? new Date(returnedAt) > new Date(dueDate) : false
+  const overdueReturnedDays = wasReturnedLate
+    ? Math.ceil(
+        (new Date(returnedAt as string).getTime() - new Date(dueDate).getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : 0
 
   const frontCard = (
     <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -224,7 +237,11 @@ export default function BorrowingItem({
                   <span className="text-muted-foreground text-xs">Due:</span>
                   <p className={`font-medium ${isOverdue ? 'text-red-600' : ''}`}>
                     {new Date(dueDate).toLocaleDateString()}
-                    {isOverdue && <span className="ml-2 text-xs text-red-600">(Overdue)</span>}
+                    {isOverdue && (
+                      <span className="ml-2 text-xs text-red-600">
+                        {overdueDays} {overdueDays === 1 ? 'day' : 'days'} overdue
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -301,14 +318,18 @@ export default function BorrowingItem({
               </div>
             </div>
 
-            {/* Due Date */}
+            {/* Due Date (returned view) */}
             <div className="flex items-start gap-3 text-sm">
-              <Clock className={`w-4 h-4 ${isOverdue ? 'text-red-500' : 'text-muted-foreground'} mt-0.5 shrink-0`} />
+              <Clock className={`w-4 h-4 ${wasReturnedLate ? 'text-red-500' : 'text-muted-foreground'} mt-0.5 shrink-0`} />
               <div>
                 <span className="text-muted-foreground text-xs">Due:</span>
-                <p className={`font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+                <p className={`font-medium ${wasReturnedLate ? 'text-red-600' : ''}`}>
                   {new Date(dueDate).toLocaleDateString()}
-                  {isOverdue && <span className="ml-2 text-xs text-red-600">(Overdue)</span>}
+                  {wasReturnedLate && (
+                    <span className="ml-2 text-xs text-red-600">
+                      {overdueReturnedDays} {overdueReturnedDays === 1 ? 'day' : 'days'} overdue
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
