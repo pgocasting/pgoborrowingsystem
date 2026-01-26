@@ -34,31 +34,14 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  /* RGB animated gradient */
-  background-image: linear-gradient(-45deg, #ff2d55, #00e676, #2f80ff, #ffcc00);
-  background-size: 400% 400%;
-  animation: gradient-move 20s ease-in-out infinite, hue-shift 40s linear infinite;
+  /* Professional blue to purple gradient */
+  background-image: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #667eea 100%);
+  background-size: 300% 300%;
+  animation: gradient-move 15s ease-in-out infinite;
 }
 
 .loading-rgb-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  /* Programmer-style: faint grid + subtle moving code stripes */
-  background-image:
-    /* horizontal grid lines */
-    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-    /* vertical grid lines */
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
-    /* animated code stripes */
-    repeating-linear-gradient(90deg, rgba(59,130,246,0.10) 0 2px, rgba(147,197,253,0.10) 2px 4px, transparent 4px 8px);
-  background-size: 60px 60px, 60px 60px, 320px 100%;
-  background-position: 0 0, 0 0, 0 0;
-  background-repeat: repeat, repeat, repeat;
-  animation: code-scroll 30s linear infinite;
-  opacity: 0.9;
+  display: none;
 }
 
 @keyframes galaxy-drift {
@@ -99,9 +82,3 @@
   100% { background-position: 0 0, 0 0, -640px 0; }
 }
 
-/* Subtle hue rotation for extra RGB vibe */
-@keyframes hue-shift {
-  0% { filter: hue-rotate(0deg) saturate(105%); }
-  50% { filter: hue-rotate(180deg) saturate(110%); }
-  100% { filter: hue-rotate(360deg) saturate(105%); }
-}

@@ -51,6 +51,7 @@ export interface NewBorrowingData {
   lastName: string
   department: string
   location: string
+  purpose: string
   borrowDate: string
   dueDate: string
 }
@@ -68,6 +69,7 @@ export default function NewBorrowingModal({
     lastName: '',
     department: '',
     location: '',
+    purpose: '',
     borrowDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   })
@@ -120,6 +122,9 @@ export default function NewBorrowingModal({
     if (!formData.dueDate) {
       newErrors.dueDate = 'Due date is required'
     }
+    if (!formData.purpose.trim()) {
+      newErrors.purpose = 'Purpose is required'
+    }
     if (formData.borrowDate && formData.dueDate && formData.borrowDate >= formData.dueDate) {
       newErrors.dueDate = 'Due date must be after borrow date'
     }
@@ -144,6 +149,7 @@ export default function NewBorrowingModal({
         lastName: '',
         department: '',
         location: '',
+        purpose: '',
         borrowDate: new Date().toISOString().split('T')[0],
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       })
@@ -325,6 +331,22 @@ export default function NewBorrowingModal({
             </div>
             {errors.location && (
               <p className="text-sm text-red-500">{errors.location}</p>
+            )}
+          </div>
+
+          {/* Purpose */}
+          <div className="space-y-2">
+            <Label htmlFor="purpose">Purpose *</Label>
+            <Input
+              id="purpose"
+              name="purpose"
+              placeholder="e.g., Office use, Project presentation, Training"
+              value={formData.purpose}
+              onChange={handleInputChange}
+              className={errors.purpose ? 'border-red-500' : ''}
+            />
+            {errors.purpose && (
+              <p className="text-sm text-red-500">{errors.purpose}</p>
             )}
           </div>
 

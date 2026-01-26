@@ -17,6 +17,7 @@ interface BorrowingItemProps {
   borrowDate: string
   dueDate: string
   location: string
+  purpose: string
   status: 'active' | 'overdue' | 'returned'
   returnedAt?: string
   returnedBy?: string
@@ -36,6 +37,7 @@ export default function BorrowingItem({
   borrowDate,
   dueDate,
   location,
+  purpose,
   status,
   returnedAt,
   returnedBy,
@@ -199,6 +201,15 @@ export default function BorrowingItem({
                 </div>
               </div>
 
+              {/* Purpose */}
+              <div className="flex items-start gap-3 text-sm">
+                <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-muted-foreground text-xs">Purpose:</span>
+                  <p className="font-medium">{purpose}</p>
+                </div>
+              </div>
+
               {/* Location */}
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -279,58 +290,73 @@ export default function BorrowingItem({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            {/* Borrower Info */}
+          <div className="space-y-4">
+            {/* First Row: Borrower Info and Location */}
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {/* Borrower Info */}
+              <div className="flex items-start gap-3 text-sm">
+                <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-muted-foreground text-xs">Borrower:</span>
+                  <p className="font-medium">{firstName} {lastName}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{department}</p>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="flex items-start gap-3 text-sm">
+                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-muted-foreground text-xs">Location:</span>
+                  {locationList.length > 1 ? (
+                    <div className="mt-1 space-y-1">
+                      {locationList.map((loc) => (
+                        <p key={loc} className="font-medium leading-tight">
+                          {loc}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="font-medium">{location}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Second Row: Purpose */}
             <div className="flex items-start gap-3 text-sm">
               <User className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
               <div>
-                <span className="text-muted-foreground text-xs">Borrower:</span>
-                <p className="font-medium">{firstName} {lastName}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{department}</p>
+                <span className="text-muted-foreground text-xs">Purpose:</span>
+                <p className="font-medium">{purpose}</p>
               </div>
             </div>
 
-            {/* Borrow Date */}
-            <div className="flex items-start gap-3 text-sm">
-              <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div>
-                <span className="text-muted-foreground text-xs">Borrowed:</span>
-                <p className="font-medium">{new Date(borrowDate).toLocaleDateString()}</p>
+            {/* Third Row: Borrowed and Due - Always Side by Side */}
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {/* Borrow Date */}
+              <div className="flex items-start gap-3 text-sm">
+                <Calendar className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                <div>
+                  <span className="text-muted-foreground text-xs">Borrowed:</span>
+                  <p className="font-medium">{new Date(borrowDate).toLocaleDateString()}</p>
+                </div>
               </div>
-            </div>
 
-            {/* Location */}
-            <div className="flex items-start gap-3 text-sm">
-              <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-              <div>
-                <span className="text-muted-foreground text-xs">Location:</span>
-                {locationList.length > 1 ? (
-                  <div className="mt-1 space-y-1">
-                    {locationList.map((loc) => (
-                      <p key={loc} className="font-medium leading-tight">
-                        {loc}
-                      </p>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="font-medium">{location}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Due Date (returned view) */}
-            <div className="flex items-start gap-3 text-sm">
-              <Clock className={`w-4 h-4 ${wasReturnedLate ? 'text-red-500' : 'text-muted-foreground'} mt-0.5 shrink-0`} />
-              <div>
-                <span className="text-muted-foreground text-xs">Due:</span>
-                <p className={`font-medium ${wasReturnedLate ? 'text-red-600' : ''}`}>
-                  {new Date(dueDate).toLocaleDateString()}
-                  {wasReturnedLate && (
-                    <span className="ml-2 text-xs text-red-600">
-                      {overdueReturnedDays} {overdueReturnedDays === 1 ? 'day' : 'days'} overdue
-                    </span>
-                  )}
-                </p>
+              {/* Due Date (returned view) */}
+              <div className="flex items-start gap-3 text-sm">
+                <Clock className={`w-4 h-4 ${wasReturnedLate ? 'text-red-500' : 'text-muted-foreground'} mt-0.5 shrink-0`} />
+                <div>
+                  <span className="text-muted-foreground text-xs">Due:</span>
+                  <p className={`font-medium ${wasReturnedLate ? 'text-red-600' : ''}`}>
+                    {new Date(dueDate).toLocaleDateString()}
+                    {wasReturnedLate && (
+                      <span className="ml-2 text-xs text-red-600">
+                        {overdueReturnedDays} {overdueReturnedDays === 1 ? 'day' : 'days'} overdue
+                      </span>
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -424,7 +450,7 @@ export default function BorrowingItem({
           setIsFlipped(false)
         }
       }}
-      className={`min-h-[26rem] sm:h-[26rem] cursor-default`}
+      className={`min-h-104 sm:h-104 cursor-default`}
       style={{
         perspective: '1000px',
       }}

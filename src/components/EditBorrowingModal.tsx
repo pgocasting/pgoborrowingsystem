@@ -39,6 +39,7 @@ export interface EditBorrowingInitialData {
   lastName: string
   department: string
   location: string
+  purpose: string
   borrowDate: string
   dueDate: string
 }
@@ -49,6 +50,7 @@ export interface EditBorrowingUpdates {
   lastName: string
   department: string
   location: string
+  purpose: string
   dueDate: string
 }
 
@@ -85,6 +87,7 @@ export default function EditBorrowingModal({
     lastName: '',
     department: '',
     location: '',
+    purpose: '',
     borrowDate: '',
     dueDate: '',
   })
@@ -106,6 +109,7 @@ export default function EditBorrowingModal({
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required'
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required'
     if (!formData.department.trim()) newErrors.department = 'Department is required'
+    if (!formData.purpose.trim()) newErrors.purpose = 'Purpose is required'
     if (selectedLocations.length === 0) newErrors.location = 'Location is required'
     if (!formData.dueDate) newErrors.dueDate = 'Due date is required'
     if (formData.borrowDate && formData.dueDate && formData.borrowDate >= formData.dueDate) {
@@ -143,6 +147,7 @@ export default function EditBorrowingModal({
       lastName: formData.lastName,
       department: formData.department,
       location: selectedLocations.join(', '),
+      purpose: formData.purpose,
       dueDate: formData.dueDate,
     })
     onOpenChange(false)
@@ -286,6 +291,20 @@ export default function EditBorrowingModal({
               </div>
             </div>
             {errors.location && <p className="text-sm text-red-500">{errors.location}</p>}
+          </div>
+
+          {/* Purpose */}
+          <div className="space-y-2">
+            <Label htmlFor="purpose">Purpose *</Label>
+            <Input
+              id="purpose"
+              name="purpose"
+              placeholder="e.g., Office use, Project presentation, Training"
+              value={formData.purpose}
+              onChange={handleInputChange}
+              className={errors.purpose ? 'border-red-500' : ''}
+            />
+            {errors.purpose && <p className="text-sm text-red-500">{errors.purpose}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

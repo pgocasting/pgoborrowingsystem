@@ -22,6 +22,7 @@ export interface BorrowingRecord {
   borrowDate: string
   dueDate: string
   location: string
+  purpose: string
   status: 'active' | 'overdue' | 'returned'
   returnedAt?: string
   returnedBy?: string
