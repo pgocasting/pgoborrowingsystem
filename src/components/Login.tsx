@@ -47,25 +47,26 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   return (
     <div className="min-h-screen loading-rgb-bg flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm p-8">
         {/* Header */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
           <img
             src="/images/bataan-logo.png"
             alt="Bataan Logo"
-            className="h-14 w-14 object-contain"
+            className="h-20 w-20 object-contain"
           />
         </div>
 
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-          Welcome Back
-        </h1>
-        <p className="text-center text-gray-600 mb-8">
-          Sign in to your account
+        <div className="text-center mb-4">
+          <h1 className="text-4xl font-bold text-gray-800 mb-1">PGO</h1>
+          <h2 className="text-2xl font-semibold text-gray-700">Borrowing System</h2>
+        </div>
+        <p className="text-center text-gray-600 mb-4">
+          Sign in to manage borrowing records
         </p>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/* Username Field */}
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
