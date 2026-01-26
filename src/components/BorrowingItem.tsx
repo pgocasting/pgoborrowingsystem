@@ -106,7 +106,7 @@ export default function BorrowingItem({
     : 0
 
   const frontCard = (
-    <Card className="hover:shadow-lg transition-shadow h-full flex flex-col">
+    <Card className="glass-card hover:shadow-lg transition-shadow h-full flex flex-col">
       <CardHeader className="pb-4 border-b">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3 min-w-0">
@@ -366,7 +366,7 @@ export default function BorrowingItem({
   )
 
   const backCard = (
-    <Card className="hover:shadow-lg transition-shadow h-full flex flex-col bg-white">
+    <Card className="glass-card hover:shadow-lg transition-shadow h-full flex flex-col">
       <CardHeader className="pb-3 border-b">
         <div className="flex items-start gap-3 justify-between">
           <div className="flex items-start gap-3">
@@ -450,7 +450,7 @@ export default function BorrowingItem({
           setIsFlipped(false)
         }
       }}
-      className={`min-h-104 sm:h-104 cursor-default`}
+      className={`min-h-104 sm:h-104 cursor-default overflow-hidden`}
       style={{
         perspective: '1000px',
       }}
@@ -503,7 +503,7 @@ export default function BorrowingItem({
                 transform: 'rotateY(180deg)',
               }}
             >
-              <Card className="h-full flex flex-col bg-white hover:shadow-lg transition-shadow">
+              <Card className="glass-card h-full flex flex-col hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3 border-b">
                   <div className="flex items-start gap-3 justify-between">
                     <div className="flex items-start gap-3">

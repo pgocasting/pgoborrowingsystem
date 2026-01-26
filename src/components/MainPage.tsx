@@ -318,9 +318,9 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   const returnedCount = borrowingRecords.filter((r) => r.status === 'returned').length
 
   return (
-    <div className="h-screen w-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-screen w-screen main-gradient-bg flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shrink-0">
+      <header className="main-gradient-bg border-b border-white/15 shrink-0">
         <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
@@ -330,15 +330,36 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
                 className="h-9 w-9 sm:h-10 sm:w-10 object-contain shrink-0"
               />
               <div className="min-w-0">
-                <h1 className="text-base sm:text-2xl font-bold text-gray-900 leading-tight truncate">PGO Borrowing System</h1>
-                <p className="text-sm text-gray-600 mt-0.5 truncate">Welcome, {username}</p>
+                <h1 className="text-base sm:text-2xl font-bold text-white leading-tight truncate">PGO Borrowing System</h1>
+                <p className="text-sm text-white/80 mt-0.5 truncate">Welcome, {username}</p>
               </div>
             </div>
+
+            {/* Desktop: show Settings + Logout on the same row */}
+            <div className="hidden sm:flex gap-2 items-center shrink-0">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={onLogout}
+                className="px-4 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="ml-2">Logout</span>
+              </Button>
+            </div>
+
             {/* Mobile: hamburger menu */}
             <div className="sm:hidden">
               <Popover open={menuOpen} onOpenChange={setMenuOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9">
+                  <Button variant="outline" size="icon" className="h-9 w-9 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white">
                     <Menu className="w-4 h-4" />
                   </Button>
                 </PopoverTrigger>
@@ -371,25 +392,6 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
               </Popover>
             </div>
           </div>
-          {/* Desktop: show Settings + Logout */}
-          <div className="hidden sm:flex gap-2 justify-end">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-10 w-10"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onLogout}
-              className="px-4"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="ml-2">Logout</span>
-            </Button>
-          </div>
         </div>
       </header>
 
@@ -406,9 +408,9 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
           </div>
         )}
         {/* Sticky Top: Stats + Search */}
-        <div className="sticky top-0 z-20 bg-gray-50 pt-4 pb-3 mb-6">
+        <div className="sticky top-0 z-20 main-gradient-bg pt-4 pb-3 mb-6">
           <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4">
-          <Card className="flex flex-col min-h-28 sm:min-h-0">
+          <Card className="glass-card flex flex-col min-h-28 sm:min-h-0">
             <CardHeader className="pb-2 text-center">
               <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
                 Active Borrowings
@@ -419,7 +421,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             </CardContent>
           </Card>
 
-          <Card className="flex flex-col min-h-28 sm:min-h-0">
+          <Card className="glass-card flex flex-col min-h-28 sm:min-h-0">
             <CardHeader className="pb-2 text-center">
               <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
                 Overdue Items
@@ -430,7 +432,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             </CardContent>
           </Card>
 
-          <Card className="flex flex-col min-h-28 sm:min-h-0">
+          <Card className="glass-card flex flex-col min-h-28 sm:min-h-0">
             <CardHeader className="pb-2 text-center">
               <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
                 Returned Items
@@ -448,7 +450,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             <Button
               variant={statusFilter === 'borrowed' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('borrowed')}
-              className="h-10 gap-2"
+              className="h-10 gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
             >
               <span>Borrowed</span>
               <Badge className="bg-yellow-100 text-yellow-800 border-transparent">{activeCount}</Badge>
@@ -456,7 +458,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             <Button
               variant={statusFilter === 'overdue' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('overdue')}
-              className="h-10 gap-2"
+              className="h-10 gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
             >
               <span>Overdue</span>
               <Badge className="bg-red-100 text-red-800 border-transparent">{overdueCount}</Badge>
@@ -464,7 +466,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             <Button
               variant={statusFilter === 'returned' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('returned')}
-              className="h-10 gap-2"
+              className="h-10 gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
             >
               <span>Returned</span>
               <Badge className="bg-green-100 text-green-800 border-transparent">{returnedCount}</Badge>
@@ -506,6 +508,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
                   lastName: editingRecord.lastName,
                   department: editingRecord.department,
                   location: editingRecord.location,
+                  purpose: editingRecord.purpose || '',
                   borrowDate: editingRecord.borrowDate,
                   dueDate: editingRecord.dueDate,
                 } satisfies EditBorrowingInitialData)
@@ -543,6 +546,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
                 key={record.id}
                 {...record}
                 id={record.id!}
+                purpose={record.purpose ?? ''}
                 itemImageUrl={defaultSettings.customItems.find((i) => i.name === record.itemName)?.imageUrl}
                 onReturn={(returnedBy: string) => handleReturn(record.id!, returnedBy)}
                 onExtend={(newDueDate: string) => handleExtend(record.id!, newDueDate)}
