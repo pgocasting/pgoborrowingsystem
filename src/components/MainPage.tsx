@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LogOut, Plus, Search, Settings, Menu } from 'lucide-react'
+import { Settings, LogOut } from 'lucide-react'
 import BorrowingItem from './BorrowingItem'
 import NewBorrowingModal from './NewBorrowingModal'
 import type { NewBorrowingData } from './NewBorrowingModal'
@@ -11,6 +9,7 @@ import EditBorrowingModal, { type EditBorrowingInitialData, type EditBorrowingUp
 import SettingsModal from './SettingsModal'
 import type { DefaultSettings } from './SettingsModal'
 import ReturnSuccessModal from './ReturnSuccessModal'
+import Sidebar from './Sidebar'
 import {
   Dialog,
   DialogContent,
@@ -27,11 +26,6 @@ import {
   deleteBorrowingRecord,
   type BorrowingRecord,
 } from '@/services/firebaseService'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 
 interface MainPageProps {
   username: string
@@ -48,6 +42,8 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   const [returnedAt, setReturnedAt] = useState('')
   const [returnedByName, setReturnedByName] = useState('')
   const [loadError, setLoadError] = useState<string>('')
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [submitError, setSubmitError] = useState<string>('')
   const [isDataLoading, setIsDataLoading] = useState(true)
   const [loadingProgress, setLoadingProgress] = useState(0)
@@ -64,8 +60,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   
   const [borrowingRecords, setBorrowingRecords] = useState<BorrowingRecord[]>([])
   const [editingRecord, setEditingRecord] = useState<BorrowingRecord | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<'borrowed' | 'overdue' | 'returned'>('borrowed')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'borrowed' | 'overdue' | 'returned'>('all')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   
@@ -162,6 +157,19 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     }
   }, [isSettingsOpen])
 
+  // Sync sidebar tabs with status filter
+  useEffect(() => {
+    if (activeTab === 'borrowings') {
+      setStatusFilter('all')
+    } else if (activeTab === 'active') {
+      setStatusFilter('borrowed')
+    } else if (activeTab === 'returned') {
+      setStatusFilter('returned')
+    } else if (activeTab === 'overdue') {
+      setStatusFilter('overdue')
+    }
+  }, [activeTab])
+
   if (!canRenderPage) {
     return (
       <div className="min-h-screen loading-rgb-bg flex items-center justify-center">
@@ -211,6 +219,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
         (record.id?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
     )
     .filter((r) => {
+      if (statusFilter === 'all') return true
       if (statusFilter === 'returned') return r.status === 'returned'
       if (statusFilter === 'overdue') return r.status === 'overdue' || (r.status === 'active' && isRecordOverdue(r))
       // borrowed = active but NOT overdue
@@ -318,84 +327,73 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
   const returnedCount = borrowingRecords.filter((r) => r.status === 'returned').length
 
   return (
-    <div className="h-screen w-screen main-gradient-bg flex flex-col overflow-hidden">
-      {/* Header */}
-      <header className="main-gradient-bg border-b border-white/15 shrink-0">
-        <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <img
-                src="/images/bataan-logo.png"
-                alt="Bataan Logo"
-                className="h-9 w-9 sm:h-10 sm:w-10 object-contain shrink-0"
-              />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-2xl font-bold text-white leading-tight truncate">PGO Borrowing System</h1>
-                <p className="text-sm text-white/80 mt-0.5 truncate">Welcome, {username}</p>
+    <div className="h-screen w-screen main-gradient-bg flex overflow-hidden">
+      <Sidebar 
+        username={username} 
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onOpenNewBorrowing={() => setIsModalOpen(true)}
+      />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="main-gradient-bg border-b border-white/15 shrink-0">
+          <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src="/images/bataan-logo.png"
+                  alt="Bataan Logo"
+                  className="h-9 w-9 sm:h-10 sm:w-10 object-contain shrink-0"
+                />
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-2xl font-bold text-white leading-tight truncate">PGO Borrowing System</h1>
+                  <p className="text-sm text-white/80 mt-0.5 truncate">Welcome, {username}</p>
+                </div>
+              </div>
+
+              {/* Desktop: show Settings + Logout on the same row */}
+              <div className="hidden sm:flex gap-2 items-center shrink-0">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+                  onClick={() => setIsSettingsOpen(true)}
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={onLogout}
+                  className="px-4 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="ml-2">Logout</span>
+                </Button>
+              </div>
+
+              {/* Mobile: hamburger menu */}
+              <div className="sm:hidden">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </Button>
               </div>
             </div>
-
-            {/* Desktop: show Settings + Logout on the same row */}
-            <div className="hidden sm:flex gap-2 items-center shrink-0">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
-                onClick={() => setIsSettingsOpen(true)}
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={onLogout}
-                className="px-4 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="ml-2">Logout</span>
-              </Button>
-            </div>
-
-            {/* Mobile: hamburger menu */}
-            <div className="sm:hidden">
-              <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white">
-                    <Menu className="w-4 h-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-40 p-0" align="end">
-                  <div className="flex flex-col">
-                    <Button
-                      variant="ghost"
-                      className="justify-start rounded-none h-10 px-3"
-                      onClick={() => {
-                        setIsSettingsOpen(true)
-                        setMenuOpen(false)
-                      }}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start rounded-none h-10 px-3"
-                      onClick={() => {
-                        onLogout()
-                        setMenuOpen(false)
-                      }}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
+        {/* Main Content */}
       <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
         {loadError && (
           <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -407,85 +405,132 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             {submitError}
           </div>
         )}
-        {/* Sticky Top: Stats + Search */}
-        <div className="sticky top-0 z-20 main-gradient-bg pt-4 pb-3 mb-6">
-          <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4">
-          <Card className="glass-card flex flex-col min-h-28 sm:min-h-0">
-            <CardHeader className="pb-2 text-center">
-              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
-                Active Borrowings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-end justify-center pb-4 text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-blue-600">{activeCount}</div>
-            </CardContent>
-          </Card>
 
-          <Card className="glass-card flex flex-col min-h-28 sm:min-h-0">
-            <CardHeader className="pb-2 text-center">
-              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
-                Overdue Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-end justify-center pb-4 text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-red-600">{overdueCount}</div>
-            </CardContent>
-          </Card>
+        {/* Dashboard View */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+            </div>
+            
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{borrowingRecords.length}</div>
+                  <p className="text-xs text-gray-500 mt-1">All borrowing records</p>
+                </CardContent>
+              </Card>
 
-          <Card className="glass-card flex flex-col min-h-28 sm:min-h-0">
-            <CardHeader className="pb-2 text-center">
-              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600 leading-tight wrap-break-word">
-                Returned Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex items-end justify-center pb-4 text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-green-600">{returnedCount}</div>
-            </CardContent>
-          </Card>
-          </div>
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Active Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">{activeCount}</div>
+                  <p className="text-xs text-gray-500 mt-1">Currently borrowed</p>
+                </CardContent>
+              </Card>
 
-          {/* Tabs + Search and Actions */}
-          <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant={statusFilter === 'borrowed' ? 'default' : 'outline'}
-              onClick={() => setStatusFilter('borrowed')}
-              className="h-10 gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
-            >
-              <span>Borrowed</span>
-              <Badge className="bg-yellow-100 text-yellow-800 border-transparent">{activeCount}</Badge>
-            </Button>
-            <Button
-              variant={statusFilter === 'overdue' ? 'default' : 'outline'}
-              onClick={() => setStatusFilter('overdue')}
-              className="h-10 gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
-            >
-              <span>Overdue</span>
-              <Badge className="bg-red-100 text-red-800 border-transparent">{overdueCount}</Badge>
-            </Button>
-            <Button
-              variant={statusFilter === 'returned' ? 'default' : 'outline'}
-              onClick={() => setStatusFilter('returned')}
-              className="h-10 gap-2 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
-            >
-              <span>Returned</span>
-              <Badge className="bg-green-100 text-green-800 border-transparent">{returnedCount}</Badge>
-            </Button>
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Overdue Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">{overdueCount}</div>
+                  <p className="text-xs text-gray-500 mt-1">Need attention</p>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Returned Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">{returnedCount}</div>
+                  <p className="text-xs text-gray-500 mt-1">Completed returns</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {borrowingRecords.slice(0, 5).map((record) => (
+                    <div key={record.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-4 h-4 rounded-full shrink-0 ${
+                          record.status === 'active' ? 'bg-blue-500' :
+                          record.status === 'overdue' ? 'bg-red-500' :
+                          'bg-green-500'
+                        }`} />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-gray-900 text-sm truncate">{record.itemName}</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {record.department} • {record.location}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          record.status === 'active' ? 'bg-blue-100 text-blue-800' :
+                          record.status === 'overdue' ? 'bg-red-100 text-red-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {record.status === 'returned' ? 'Returned' : 
+                           record.status === 'overdue' ? 'Overdue' : 'Active'}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {record.status === 'returned' ? record.returnedAt : record.borrowDate}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {borrowingRecords.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p className="text-sm">No recent activity</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Search by item name, borrower, or ID..."
-              value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
-            <Plus className="w-4 h-4" />
-            New Borrowing
-          </Button>
-          </div>
+        )}
+
+        {/* Borrowing Items View */}
+        {activeTab !== 'dashboard' && (
+          <>
+        {/* Borrowing Items Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredRecords.length > 0 ? (
+            filteredRecords.map((record) => (
+              <BorrowingItem
+                key={record.id}
+                {...record}
+                id={record.id!}
+                purpose={record.purpose ?? ''}
+                itemImageUrl={defaultSettings.customItems.find((i) => i.name === record.itemName)?.imageUrl}
+                onReturn={(returnedBy: string) => handleReturn(record.id!, returnedBy)}
+                onExtend={(newDueDate: string) => handleExtend(record.id!, newDueDate)}
+                onEdit={() => {
+                  setEditingRecord(record)
+                  setIsEditModalOpen(true)
+                }}
+                onDelete={() => handleDelete(record.id!)}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 text-lg">No borrowing records found</p>
+            </div>
+          )}
         </div>
 
         {/* New Borrowing Modal */}
@@ -538,32 +583,6 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
           returnedBy={returnedByName}
         />
 
-        {/* Borrowing Items Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRecords.length > 0 ? (
-            filteredRecords.map((record) => (
-              <BorrowingItem
-                key={record.id}
-                {...record}
-                id={record.id!}
-                purpose={record.purpose ?? ''}
-                itemImageUrl={defaultSettings.customItems.find((i) => i.name === record.itemName)?.imageUrl}
-                onReturn={(returnedBy: string) => handleReturn(record.id!, returnedBy)}
-                onExtend={(newDueDate: string) => handleExtend(record.id!, newDueDate)}
-                onEdit={() => {
-                  setEditingRecord(record)
-                  setIsEditModalOpen(true)
-                }}
-                onDelete={() => handleDelete(record.id!)}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-500 text-lg">No borrowing records found</p>
-            </div>
-          )}
-        </div>
-
         {/* Delete Confirmation Modal */}
         <Dialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
           <DialogContent>
@@ -590,7 +609,10 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+          </>
+        )}
       </main>
+    </div>
     </div>
   )
 }
