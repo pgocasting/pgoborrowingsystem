@@ -410,7 +410,7 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+              <h1 className="text-2xl font-bold text-white"></h1>
             </div>
             
             {/* Stats Cards */}
