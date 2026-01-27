@@ -31,10 +31,6 @@ export default function Sidebar({
     { icon: BarChart3, label: 'Overdue Items', href: 'overdue', action: () => onTabChange?.('overdue') },
   ]
 
-  const secondaryMenuItems = [
-    { icon: BarChart3, label: 'Reports', href: 'reports', action: () => alert('Reports feature coming soon!') },
-    { icon: Users, label: 'User Management', href: 'users', action: () => alert('User management feature coming soon!') },
-  ]
 
   const handleMenuClick = (item: any, e: React.MouseEvent) => {
     e.preventDefault()
@@ -130,26 +126,6 @@ export default function Sidebar({
               </ul>
             </div>
 
-            <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">System</h3>
-              <ul className="space-y-1">
-                {secondaryMenuItems.map((item) => (
-                  <li key={item.label}>
-                    <button
-                      onClick={(e) => handleMenuClick(item, e)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
-                        activeTab === item.href 
-                          ? 'bg-gray-100 text-gray-900 border-l-4 border-gray-600' 
-                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                      <span className="font-medium">{item.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
           </nav>
 
           {/* User Info */}
