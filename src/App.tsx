@@ -70,10 +70,10 @@ function App() {
     const interval = setInterval(() => {
       setLoadingProgress((p) => {
         if (p >= target) return p
-        const step = target === 100 ? 8 : 4
+        const step = target === 100 ? 20 : 12
         return Math.min(target, p + step)
       })
-    }, 120)
+    }, 60)
 
     return () => clearInterval(interval)
   }, [isInitializing, isAuthReady])

@@ -120,15 +120,15 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
     const interval = setInterval(() => {
       setLoadingProgress((p) => {
         if (p >= 95) return 95
-        return Math.min(95, p + 5)
+        return Math.min(95, p + 15)
       })
-    }, 200)
+    }, 80)
     return () => clearInterval(interval)
   }, [isDataLoading])
 
   useEffect(() => {
     if (!isDataLoading && loadingProgress >= 100) {
-      const t = setTimeout(() => setCanRenderPage(true), 150)
+      const t = setTimeout(() => setCanRenderPage(true), 50)
       return () => clearTimeout(t)
     }
   }, [isDataLoading, loadingProgress])
