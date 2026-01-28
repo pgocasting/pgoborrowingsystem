@@ -566,23 +566,6 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
           }}
         />
 
-        {/* Settings Modal */}
-        <SettingsModal
-          open={isSettingsOpen}
-          onOpenChange={setIsSettingsOpen}
-          onSave={setDefaultSettings}
-          currentSettings={defaultSettings}
-        />
-
-        {/* Return Success Modal */}
-        <ReturnSuccessModal
-          open={isReturnSuccessOpen}
-          onOpenChange={setIsReturnSuccessOpen}
-          itemName={returnedItemName}
-          returnedAt={returnedAt}
-          returnedBy={returnedByName}
-        />
-
         {/* Delete Confirmation Modal */}
         <Dialog open={!!deleteConfirmId} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null) }}>
           <DialogContent>
@@ -611,6 +594,23 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
         </Dialog>
           </>
         )}
+
+      {/* Settings Modal */}
+      <SettingsModal
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        onSave={setDefaultSettings}
+        currentSettings={defaultSettings}
+      />
+
+      {/* Return Success Modal */}
+      <ReturnSuccessModal
+        open={isReturnSuccessOpen}
+        onOpenChange={setIsReturnSuccessOpen}
+        itemName={returnedItemName}
+        returnedAt={returnedAt}
+        returnedBy={returnedByName}
+      />
       </main>
     </div>
     </div>
