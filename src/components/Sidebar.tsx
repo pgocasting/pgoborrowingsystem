@@ -1,4 +1,4 @@
-import { Menu, X, Home, Users, Package, FileText, BarChart3, Archive, Search, Plus } from 'lucide-react'
+import { Menu, X, Home, Package, FileText, BarChart3, Archive, Search, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
