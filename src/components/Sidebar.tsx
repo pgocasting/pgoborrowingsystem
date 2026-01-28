@@ -67,16 +67,12 @@ export default function Sidebar({
         <div className="flex flex-col h-full">
           {/* Header with Logo and Title */}
           <div className="p-6 border-b main-gradient-bg">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center">
               <img
                 src="/images/bataan-logo.png"
                 alt="Bataan Logo"
-                className="h-10 w-10 object-contain shrink-0"
+                className="h-12 w-12 object-contain"
               />
-              <div className="min-w-0">
-                <h2 className="text-lg font-bold text-white leading-tight">PGO Borrowing System</h2>
-                <p className="text-sm text-white/90">Welcome, {username}</p>
-              </div>
             </div>
           </div>
 

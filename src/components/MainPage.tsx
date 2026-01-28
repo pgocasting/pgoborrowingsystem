@@ -345,11 +345,6 @@ export default function MainPage({ username, onLogout }: MainPageProps) {
           <div className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <img
-                  src="/images/bataan-logo.png"
-                  alt="Bataan Logo"
-                  className="h-9 w-9 sm:h-10 sm:w-10 object-contain shrink-0"
-                />
                 <div className="min-w-0">
                   <h1 className="text-base sm:text-2xl font-bold text-white leading-tight truncate">PGO Borrowing System</h1>
                   <p className="text-sm text-white/80 mt-0.5 truncate">Welcome, {username}</p>
